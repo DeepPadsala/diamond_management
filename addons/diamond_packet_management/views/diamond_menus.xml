@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ─────────── Top-level App ─────────── -->
+        <menuitem id="menu_diamond_root"
+                  name="Diamond"
+                  sequence="10"
+                  web_icon="diamond_packet_management,static/description/icon.png"
+                  groups="group_diamond_user"/>
+
+        <!-- ─────────── Top-level menus (order: Live Stock → Labour → Master → Utility) ─────────── -->
+        <menuitem id="menu_diamond_stock_root"
+                  name="Live Stock"
+                  parent="menu_diamond_root"
+                  sequence="10"/>
+
+        <menuitem id="menu_diamond_master_root"
+                  name="Master"
+                  parent="menu_diamond_root"
+                  sequence="30"/>
+
+        <menuitem id="menu_diamond_utility_root"
+                  name="Utility"
+                  parent="menu_diamond_root"
+                  sequence="40"/>
+
+        <!-- Hidden for now — set active=True when needed -->
+        <menuitem id="menu_diamond_transaction_root"
+                  name="Transaction"
+                  parent="menu_diamond_root"
+                  sequence="90"
+                  active="False"/>
+
+        <menuitem id="menu_diamond_history_root"
+                  name="Packet History"
+                  parent="menu_diamond_root"
+                  sequence="91"
+                  active="False"/>
+
+        <!-- ─────────── Master sub-menus (will be filled by individual view files) ─────────── -->
+        <menuitem id="menu_diamond_master_party"
+                  name="Parties &amp; Accounts"
+                  parent="menu_diamond_master_root"
+                  sequence="10"/>
+
+        <menuitem id="menu_diamond_master_grades"
+                  name="4Cs &amp; Grades"
+                  parent="menu_diamond_master_root"
+                  sequence="20"/>
+
+        <menuitem id="menu_diamond_master_workflow"
+                  name="Process &amp; Workforce"
+                  parent="menu_diamond_master_root"
+                  sequence="30"/>
+
+        <menuitem id="menu_diamond_master_other"
+                  name="Other Masters"
+                  parent="menu_diamond_master_root"
+                  sequence="40"/>
+
+    </data>
+</odoo>

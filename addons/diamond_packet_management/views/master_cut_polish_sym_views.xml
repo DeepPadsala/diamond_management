@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_cut_list" model="ir.ui.view">
+            <field name="name">diamond.cut.list</field>
+            <field name="model">diamond.cut</field>
+            <field name="arch" type="xml">
+                <list string="Cut Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="grade_value"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_cut" model="ir.actions.act_window">
+            <field name="name">Cut</field>
+            <field name="res_model">diamond.cut</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_cut" name="Cut" parent="menu_diamond_master_grades" action="action_diamond_cut" sequence="40"/>
+
+        <record id="view_diamond_polish_list" model="ir.ui.view">
+            <field name="name">diamond.polish.list</field>
+            <field name="model">diamond.polish</field>
+            <field name="arch" type="xml">
+                <list string="Polish Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="grade_value"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_polish" model="ir.actions.act_window">
+            <field name="name">Polish</field>
+            <field name="res_model">diamond.polish</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_polish" name="Polish" parent="menu_diamond_master_grades" action="action_diamond_polish" sequence="50"/>
+
+        <record id="view_diamond_symmetry_list" model="ir.ui.view">
+            <field name="name">diamond.symmetry.list</field>
+            <field name="model">diamond.symmetry</field>
+            <field name="arch" type="xml">
+                <list string="Symmetry Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="grade_value"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_symmetry" model="ir.actions.act_window">
+            <field name="name">Symmetry</field>
+            <field name="res_model">diamond.symmetry</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_symmetry" name="Symmetry" parent="menu_diamond_master_grades" action="action_diamond_symmetry" sequence="60"/>
+
+    </data>
+</odoo>

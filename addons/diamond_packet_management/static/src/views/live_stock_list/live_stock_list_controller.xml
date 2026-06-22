@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.ListView" t-inherit-mode="primary" t-name="diamond_packet_management.LiveStockListView">
+        <xpath expr="//t[@t-set-slot='layout-actions']" position="replace">
+            <t t-set-slot="layout-actions">
+                <!--
+                    Barcode scan input — always visible, even when packets are selected.
+                    layoutActions is forced to true in LiveStockListController.get display().
+                    Each scan selects the found packet and immediately re-focuses this input
+                    so the user can scan another barcode without touching the keyboard/mouse.
+                -->
+                <div class="o_diamond_live_stock_scan d-flex align-items-center gap-2 flex-grow-1">
+                    <div class="input-group" style="width:240px;max-width:38vw;flex-shrink:0;">
+                        <span class="input-group-text py-1 px-2">
+                            <i class="fa fa-barcode"/>
+                        </span>
+                        <input type="text"
+                               class="form-control o_diamond_barcode_input"
+                               t-ref="barcodeInput"
+                               placeholder="Scan barcode…"
+                               autocomplete="off"
+                               spellcheck="false"
+                               t-on-keydown="onBarcodeKeydown"/>
+                    </div>
+                    <SearchBar toggler="searchBarToggler"/>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+</templates>

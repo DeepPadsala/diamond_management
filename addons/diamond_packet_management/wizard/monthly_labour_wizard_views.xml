@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_monthly_labour_wizard_form" model="ir.ui.view">
+            <field name="name">diamond.monthly.labour.wizard.form</field>
+            <field name="model">diamond.monthly.labour.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generate Monthly Labour Documents">
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="period_month"/>
+                            <field name="period_year"/>
+                        </group>
+                        <group>
+                            <field name="generate_party_invoices"/>
+                            <field name="generate_salary_slips"/>
+                            <field name="invoice_date" invisible="not generate_party_invoices"/>
+                            <field name="slip_date" invisible="not generate_salary_slips"/>
+                        </group>
+                    </group>
+                    <group string="Preview (unbilled entries only)">
+                        <group>
+                            <label for="open_party_entry_count" string="Unbilled Party Entries"/>
+                            <div class="o_row">
+                                <field name="open_party_entry_count" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span> → </span>
+                                <field name="party_invoice_count" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span> invoice(s)</span>
+                            </div>
+                        </group>
+                        <group>
+                            <label for="open_worker_entry_count" string="Unbilled Worker Entries"/>
+                            <div class="o_row">
+                                <field name="open_worker_entry_count" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span> → </span>
+                                <field name="salary_slip_count" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span> slip(s)</span>
+                            </div>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_generate" string="Generate" type="object" class="btn-primary"/>
+                        <button string="Cancel" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_monthly_labour_wizard" model="ir.actions.act_window">
+            <field name="name">Monthly Labour Billing</field>
+            <field name="res_model">diamond.monthly.labour.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_diamond_monthly_labour_wizard" name="Monthly Billing"
+                  parent="menu_diamond_labour_root" action="action_diamond_monthly_labour_wizard" sequence="5"/>
+
+    </data>
+</odoo>

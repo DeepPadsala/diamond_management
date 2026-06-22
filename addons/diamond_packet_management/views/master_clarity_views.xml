@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_clarity_list" model="ir.ui.view">
+            <field name="name">diamond.clarity.list</field>
+            <field name="model">diamond.clarity</field>
+            <field name="arch" type="xml">
+                <list string="Clarity Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="grade_value"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_diamond_clarity" model="ir.actions.act_window">
+            <field name="name">Clarity</field>
+            <field name="res_model">diamond.clarity</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_diamond_clarity"
+                  name="Clarity"
+                  parent="menu_diamond_master_grades"
+                  action="action_diamond_clarity"
+                  sequence="30"/>
+
+    </data>
+</odoo>

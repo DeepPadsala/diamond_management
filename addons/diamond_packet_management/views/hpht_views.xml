@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- HPHT Issue (F12) -->
+        <record id="view_diamond_hpht_issue_form" model="ir.ui.view">
+            <field name="name">diamond.hpht.issue.form</field>
+            <field name="model">diamond.hpht.issue</field>
+            <field name="arch" type="xml">
+                <form string="HPHT Issue">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset"   type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="process_id"/>
+                                <field name="ledger_id" required="1"/>
+                                <field name="expected_return_date"/>
+                            </group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <field name="line_ids">
+                            <list editable="bottom">
+                                <field name="packet_id"/>
+                                <field name="barcode" readonly="1"/>
+                                <field name="pcs"/>
+                                <field name="cts"/>
+                                <field name="note"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_diamond_hpht_issue_list" model="ir.ui.view">
+            <field name="name">diamond.hpht.issue.list</field>
+            <field name="model">diamond.hpht.issue</field>
+            <field name="arch" type="xml">
+                <list><field name="name"/><field name="date"/><field name="ledger_id"/><field name="process_id"/>
+                    <field name="total_pcs"/><field name="total_cts"/><field name="expected_return_date"/><field name="state"/></list>
+            </field>
+        </record>
+        <record id="action_diamond_hpht_issue" model="ir.actions.act_window">
+            <field name="name">HPHT Issue (F12)</field>
+            <field name="res_model">diamond.hpht.issue</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_hpht_issue" name="F12 HPHT Issue" parent="menu_diamond_transaction_root"
+                  action="action_diamond_hpht_issue" sequence="60"/>
+
+        <!-- HPHT Receive -->
+        <record id="view_diamond_hpht_receive_form" model="ir.ui.view">
+            <field name="name">diamond.hpht.receive.form</field>
+            <field name="model">diamond.hpht.receive</field>
+            <field name="arch" type="xml">
+                <form string="HPHT Receive">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset"   type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="process_id"/>
+                                <field name="ledger_id"/>
+                            </group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <field name="line_ids">
+                            <list editable="bottom">
+                                <field name="packet_id"/>
+                                <field name="barcode" readonly="1"/>
+                                <field name="pcs"/>
+                                <field name="cts"/>
+                                <field name="loss_cts"/>
+                                <field name="party_labour_amount" readonly="1"/>
+                                <field name="new_color_id"/>
+                                <field name="note"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_diamond_hpht_receive_list" model="ir.ui.view">
+            <field name="name">diamond.hpht.receive.list</field>
+            <field name="model">diamond.hpht.receive</field>
+            <field name="arch" type="xml">
+                <list><field name="name"/><field name="date"/><field name="ledger_id"/><field name="process_id"/>
+                    <field name="total_pcs"/><field name="total_cts"/><field name="state"/></list>
+            </field>
+        </record>
+        <record id="action_diamond_hpht_receive" model="ir.actions.act_window">
+            <field name="name">HPHT Receive</field>
+            <field name="res_model">diamond.hpht.receive</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_hpht_receive" name="HPHT Receive" parent="menu_diamond_transaction_root"
+                  action="action_diamond_hpht_receive" sequence="65"/>
+
+    </data>
+</odoo>

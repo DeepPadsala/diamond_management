@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default master data the user can edit / extend.
+             noupdate="1" so re-installs won't overwrite the user's changes. -->
+
+        <!-- ─────────── Shapes ─────────── -->
+        <record id="shape_round" model="diamond.shape">
+            <field name="code">RD</field><field name="name">Round</field><field name="short_code">RD</field>
+        </record>
+        <record id="shape_princess" model="diamond.shape">
+            <field name="code">PR</field><field name="name">Princess</field><field name="short_code">PR</field>
+        </record>
+        <record id="shape_oval" model="diamond.shape">
+            <field name="code">OV</field><field name="name">Oval</field><field name="short_code">OV</field>
+        </record>
+        <record id="shape_marquise" model="diamond.shape">
+            <field name="code">MQ</field><field name="name">Marquise</field><field name="short_code">MQ</field>
+        </record>
+        <record id="shape_emerald" model="diamond.shape">
+            <field name="code">EM</field><field name="name">Emerald</field><field name="short_code">EM</field>
+        </record>
+        <record id="shape_pear" model="diamond.shape">
+            <field name="code">PE</field><field name="name">Pear</field><field name="short_code">PE</field>
+        </record>
+        <record id="shape_cushion" model="diamond.shape">
+            <field name="code">CU</field><field name="name">Cushion</field><field name="short_code">CU</field>
+        </record>
+        <record id="shape_assher" model="diamond.shape">
+            <field name="code">ASS</field><field name="name">Assher</field><field name="short_code">ASS</field>
+        </record>
+
+        <!-- ─────────── Colors ─────────── -->
+        <record id="color_d" model="diamond.color"><field name="code">D</field><field name="name">D</field><field name="grade_value">1</field></record>
+        <record id="color_e" model="diamond.color"><field name="code">E</field><field name="name">E</field><field name="grade_value">2</field></record>
+        <record id="color_f" model="diamond.color"><field name="code">F</field><field name="name">F</field><field name="grade_value">3</field></record>
+        <record id="color_g" model="diamond.color"><field name="code">G</field><field name="name">G</field><field name="grade_value">4</field></record>
+        <record id="color_h" model="diamond.color"><field name="code">H</field><field name="name">H</field><field name="grade_value">5</field></record>
+        <record id="color_i" model="diamond.color"><field name="code">I</field><field name="name">I</field><field name="grade_value">6</field></record>
+        <record id="color_j" model="diamond.color"><field name="code">J</field><field name="name">J</field><field name="grade_value">7</field></record>
+        <record id="color_k" model="diamond.color"><field name="code">K</field><field name="name">K</field><field name="grade_value">8</field></record>
+
+        <!-- ─────────── Clarities ─────────── -->
+        <record id="clarity_fl" model="diamond.clarity"><field name="code">FL</field><field name="name">Flawless</field><field name="grade_value">1</field></record>
+        <record id="clarity_if" model="diamond.clarity"><field name="code">IF</field><field name="name">Internally Flawless</field><field name="grade_value">2</field></record>
+        <record id="clarity_vvs1" model="diamond.clarity"><field name="code">VVS1</field><field name="name">VVS1</field><field name="grade_value">3</field></record>
+        <record id="clarity_vvs2" model="diamond.clarity"><field name="code">VVS2</field><field name="name">VVS2</field><field name="grade_value">4</field></record>
+        <record id="clarity_vs1" model="diamond.clarity"><field name="code">VS1</field><field name="name">VS1</field><field name="grade_value">5</field></record>
+        <record id="clarity_vs2" model="diamond.clarity"><field name="code">VS2</field><field name="name">VS2</field><field name="grade_value">6</field></record>
+        <record id="clarity_si1" model="diamond.clarity"><field name="code">SI1</field><field name="name">SI1</field><field name="grade_value">7</field></record>
+        <record id="clarity_si2" model="diamond.clarity"><field name="code">SI2</field><field name="name">SI2</field><field name="grade_value">8</field></record>
+        <record id="clarity_i1" model="diamond.clarity"><field name="code">I1</field><field name="name">I1</field><field name="grade_value">9</field></record>
+
+        <!-- ─────────── Cut / Polish / Symmetry ─────────── -->
+        <record id="cut_ex" model="diamond.cut"><field name="code">EX</field><field name="name">Excellent</field><field name="grade_value">1</field></record>
+        <record id="cut_vg" model="diamond.cut"><field name="code">VG</field><field name="name">Very Good</field><field name="grade_value">2</field></record>
+        <record id="cut_gd" model="diamond.cut"><field name="code">GD</field><field name="name">Good</field><field name="grade_value">3</field></record>
+        <record id="cut_fr" model="diamond.cut"><field name="code">FR</field><field name="name">Fair</field><field name="grade_value">4</field></record>
+        <record id="cut_pr" model="diamond.cut"><field name="code">PR</field><field name="name">Poor</field><field name="grade_value">5</field></record>
+
+        <record id="polish_ex" model="diamond.polish"><field name="code">EX</field><field name="name">Excellent</field><field name="grade_value">1</field></record>
+        <record id="polish_vg" model="diamond.polish"><field name="code">VG</field><field name="name">Very Good</field><field name="grade_value">2</field></record>
+        <record id="polish_gd" model="diamond.polish"><field name="code">GD</field><field name="name">Good</field><field name="grade_value">3</field></record>
+
+        <record id="sym_ex" model="diamond.symmetry"><field name="code">EX</field><field name="name">Excellent</field><field name="grade_value">1</field></record>
+        <record id="sym_vg" model="diamond.symmetry"><field name="code">VG</field><field name="name">Very Good</field><field name="grade_value">2</field></record>
+        <record id="sym_gd" model="diamond.symmetry"><field name="code">GD</field><field name="name">Good</field><field name="grade_value">3</field></record>
+
+        <!-- ─────────── Fluorescence ─────────── -->
+        <record id="fluo_n" model="diamond.fluorescence"><field name="code">N</field><field name="name">None</field><field name="grade_value">1</field></record>
+        <record id="fluo_f" model="diamond.fluorescence"><field name="code">F</field><field name="name">Faint</field><field name="grade_value">2</field></record>
+        <record id="fluo_m" model="diamond.fluorescence"><field name="code">M</field><field name="name">Medium</field><field name="grade_value">3</field></record>
+        <record id="fluo_s" model="diamond.fluorescence"><field name="code">S</field><field name="name">Strong</field><field name="grade_value">4</field></record>
+        <record id="fluo_vs" model="diamond.fluorescence"><field name="code">VS</field><field name="name">Very Strong</field><field name="grade_value">5</field></record>
+
+        <!-- ─────────── Labs ─────────── -->
+        <record id="lab_gia" model="diamond.lab"><field name="code">GIA</field><field name="name">GIA</field><field name="full_name">Gemological Institute of America</field></record>
+        <record id="lab_igi" model="diamond.lab"><field name="code">IGI</field><field name="name">IGI</field><field name="full_name">International Gemological Institute</field></record>
+        <record id="lab_hrd" model="diamond.lab"><field name="code">HRD</field><field name="name">HRD</field></record>
+
+        <!-- ─────────── Processes ─────────── -->
+        <record id="process_sarine" model="diamond.process">
+            <field name="code">SARIN</field><field name="name">Sarine Planning</field>
+            <field name="process_type">internal</field><field name="sequence_no">10</field>
+        </record>
+        <record id="process_cutting" model="diamond.process">
+            <field name="code">CUT</field><field name="name">Cutting</field>
+            <field name="process_type">internal</field><field name="sequence_no">20</field>
+        </record>
+        <record id="process_polish" model="diamond.process">
+            <field name="code">POL</field><field name="name">Polishing</field>
+            <field name="process_type">internal</field><field name="sequence_no">30</field>
+        </record>
+        <record id="process_repair" model="diamond.process">
+            <field name="code">REP</field><field name="name">Repair</field>
+            <field name="process_type">internal</field><field name="sequence_no">40</field>
+        </record>
+        <record id="process_hpht" model="diamond.process">
+            <field name="code">HPHT</field><field name="name">HPHT Treatment</field>
+            <field name="process_type">hpht</field><field name="sequence_no">50</field>
+        </record>
+        <record id="process_jobwork" model="diamond.process">
+            <field name="code">JOB</field><field name="name">Jobwork</field>
+            <field name="process_type">jobwork</field><field name="sequence_no">60</field>
+        </record>
+        <record id="process_certify" model="diamond.process">
+            <field name="code">CERT</field><field name="name">Certification</field>
+            <field name="process_type">certify</field><field name="sequence_no">70</field>
+        </record>
+
+        <!-- ─────────── Account groups ─────────── -->
+        <record id="acct_grp_debtor" model="diamond.account.group">
+            <field name="code">SD</field><field name="name">Sundry Debtors</field><field name="nature">debtor</field>
+        </record>
+        <record id="acct_grp_creditor" model="diamond.account.group">
+            <field name="code">SC</field><field name="name">Sundry Creditors</field><field name="nature">creditor</field>
+        </record>
+        <record id="acct_grp_jobworker" model="diamond.account.group">
+            <field name="code">JW</field><field name="name">Jobworkers</field><field name="nature">creditor</field>
+        </record>
+
+    </data>
+</odoo>

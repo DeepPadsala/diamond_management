@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_diamond_charni_list" model="ir.ui.view">
+            <field name="name">diamond.charni.list</field>
+            <field name="model">diamond.charni</field>
+            <field name="arch" type="xml">
+                <list string="Charni Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="size_from_mm"/>
+                    <field name="size_to_mm"/>
+                    <field name="weight_pp_cts"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_charni" model="ir.actions.act_window">
+            <field name="name">Charni / Sieves</field>
+            <field name="res_model">diamond.charni</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_charni" name="Charni" parent="menu_diamond_master_other" action="action_diamond_charni" sequence="20"/>
+    </data>
+</odoo>

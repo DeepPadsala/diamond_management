@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ─────────────── List view ─────────────── -->
+        <record id="view_diamond_packet_list" model="ir.ui.view">
+            <field name="name">diamond.packet.list</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <list string="Packets" decoration-info="state=='in_stock'"
+                      decoration-warning="state in ('in_process','in_factory','in_jobwork','in_hpht')"
+                      decoration-success="state=='ready'"
+                      decoration-muted="state=='closed'">
+                    <field name="packet_no"/>
+                    <field name="barcode"/>
+                    <field name="kapan_no"/>
+                    <field name="shape_id"/>
+                    <field name="color_id"/>
+                    <field name="clarity_id"/>
+                    <field name="cps"/>
+                    <field name="lab_id"/>
+                    <field name="state"/>
+                    <field name="current_process_id"/>
+                    <field name="current_holder_id"/>
+                    <field name="org_pcs"/>
+                    <field name="org_cts"/>
+                    <field name="rdy_pcs"/>
+                    <field name="rdy_cts"/>
+                    <field name="rate_per_cts"/>
+                    <field name="amount" sum="Total Amount"/>
+                    <field name="inward_date"/>
+                    <field name="days_in_stock"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ─────────────── Form view ─────────────── -->
+        <record id="view_diamond_packet_form" model="ir.ui.view">
+            <field name="name">diamond.packet.form</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <form string="Packet">
+                    <header>
+                        <button name="action_to_stock"      string="To Stock"      type="object" class="oe_highlight" invisible="state in ('closed','in_stock')"/>
+                        <button name="action_issue_process" string="Process Issue" type="object" invisible="state not in ('draft','in_stock','ready')"/>
+                        <button name="action_issue_factory" string="Factory Issue" type="object" invisible="state not in ('draft','in_stock','ready')"/>
+                        <button name="action_issue_jobwork" string="Jobwork Issue" type="object" invisible="state not in ('draft','in_stock','ready')"/>
+                        <button name="action_issue_hpht"    string="HPHT Issue"   type="object" invisible="state not in ('draft','in_stock','ready')"/>
+                        <button name="action_receive"       string="Receive (Enter Weight)" type="object" class="oe_highlight"
+                                invisible="state not in ('in_process','in_factory','in_jobwork','in_hpht')"/>
+                        <button name="action_mark_ready"    string="Mark Ready"    type="object" class="oe_highlight" invisible="state in ('closed','ready')"/>
+                        <button name="action_outward"       string="Outward"   type="object" invisible="state=='closed'"/>
+                        <button name="action_close"         string="Close"         type="object" invisible="state=='closed'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,in_stock,in_process,in_factory,in_jobwork,in_hpht,ready,outward,closed"/>
+                    </header>
+                    <sheet>
+                        <group string="Identification">
+                            <group>
+                                <field name="user_packet_no"/>
+                                <field name="packet_no" readonly="1"/>
+                                <field name="barcode" widget="barcode"/>
+                            </group>
+                            <group>
+                                <field name="kapan_no"/>
+                            </group>
+                        </group>
+
+                        <group>
+                            <group string="Stone (4Cs)">
+                                <field name="shape_id"/>
+                                <field name="color_id"/>
+                                <field name="clarity_id"/>
+                                <field name="cut_id"/>
+                                <field name="polish_id"/>
+                                <field name="symmetry_id"/>
+                                <field name="cps" readonly="1"/>
+                                <field name="fluorescence_id"/>
+                                <field name="lab_id"/>
+                                <field name="charni_id"/>
+                                <field name="product_id"/>
+                            </group>
+                            <group string="Quantity &amp; Value">
+                                <field name="org_pcs"/>
+                                <field name="org_cts"/>
+                                <field name="expected_cts"/>
+                                <field name="rdy_pcs"/>
+                                <field name="rdy_cts"/>
+                                <field name="rate_per_cts"/>
+                                <field name="amount" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <group>
+                            <group string="Location / Holder">
+                                <field name="current_location"/>
+                                <field name="current_holder_id"/>
+                                <field name="current_employee_id"/>
+                                <field name="current_process_id"/>
+                            </group>
+                            <group string="Pending Factory Process"
+                                   invisible="not pending_factory_employee_id">
+                                <field name="pending_factory_employee_id" readonly="1"/>
+                                <field name="pending_factory_process_id" readonly="1"/>
+                                <field name="pending_factory_issue_cts" readonly="1"/>
+                            </group>
+                            <group string="Documents">
+                                <field name="inward_id" readonly="1"/>
+                                <field name="inward_date" readonly="1"/>
+                                <field name="outward_id" readonly="1"/>
+                                <field name="outward_date" readonly="1"/>
+                                <field name="last_movement_date" readonly="1"/>
+                                <field name="days_in_stock" readonly="1"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="History" name="history">
+                                <field name="history_ids" readonly="1">
+                                    <list>
+                                        <field name="create_date"/>
+                                        <field name="action"/>
+                                        <field name="state"/>
+                                        <field name="location"/>
+                                        <field name="process_id"/>
+                                        <field name="ledger_id"/>
+                                        <field name="employee_id"/>
+                                        <field name="rdy_pcs"/>
+                                        <field name="rdy_cts"/>
+                                        <field name="user_id"/>
+                                        <field name="note"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="note"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ─────────────── Search view ─────────────── -->
+        <record id="view_diamond_packet_search" model="ir.ui.view">
+            <field name="name">diamond.packet.search</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="packet_no"/>
+                    <field name="barcode"/>
+                    <field name="kapan_no"/>
+                    <field name="user_packet_no"/>
+                    <field name="shape_id"/>
+                    <field name="color_id"/>
+                    <field name="clarity_id"/>
+                    <field name="current_holder_id"/>
+                    <filter name="in_stock"   string="In Stock"   domain="[('state','=','in_stock')]"/>
+                    <filter name="in_process" string="In Process" domain="[('state','=','in_process')]"/>
+                    <filter name="in_factory" string="In Factory" domain="[('state','=','in_factory')]"/>
+                    <filter name="in_jobwork" string="In Jobwork" domain="[('state','=','in_jobwork')]"/>
+                    <filter name="in_hpht"    string="In HPHT"    domain="[('state','=','in_hpht')]"/>
+                    <filter name="ready"      string="Ready"      domain="[('state','=','ready')]"/>
+                    <separator/>
+                    <filter name="open" string="Open (not closed)" domain="[('state','!=','closed')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="grp_state"   string="Status"  context="{'group_by':'state'}"/>
+                        <filter name="grp_loc"     string="Location" context="{'group_by':'current_location'}"/>
+                        <filter name="grp_shape"   string="Shape"   context="{'group_by':'shape_id'}"/>
+                        <filter name="grp_color"   string="Color"   context="{'group_by':'color_id'}"/>
+                        <filter name="grp_clarity" string="Clarity" context="{'group_by':'clarity_id'}"/>
+                        <filter name="grp_holder"  string="Holder"  context="{'group_by':'current_holder_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Kanban (optional, simple) -->
+        <record id="view_diamond_packet_kanban" model="ir.ui.view">
+            <field name="name">diamond.packet.kanban</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" sample="1">
+                    <field name="packet_no"/>
+                    <field name="barcode"/>
+                    <field name="shape_id"/>
+                    <field name="color_id"/>
+                    <field name="clarity_id"/>
+                    <field name="rdy_cts"/>
+                    <field name="state"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click p-2">
+                                <div class="o_kanban_record_top">
+                                    <strong><field name="packet_no"/></strong>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div><field name="barcode"/></div>
+                                    <div>
+                                        <field name="shape_id"/>
+                                        / <field name="color_id"/>
+                                        / <field name="clarity_id"/>
+                                    </div>
+                                    <div><field name="rdy_cts"/> cts</div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_diamond_packet" model="ir.actions.act_window">
+            <field name="name">Packets</field>
+            <field name="res_model">diamond.packet</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="search_view_id" ref="view_diamond_packet_search"/>
+            <field name="context">{'search_default_open':1}</field>
+        </record>
+
+    </data>
+</odoo>

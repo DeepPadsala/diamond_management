@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Factory Issue (F5) -->
+        <record id="view_diamond_factory_issue_form" model="ir.ui.view">
+            <field name="name">diamond.factory.issue.form</field>
+            <field name="model">diamond.factory.issue</field>
+            <field name="arch" type="xml">
+                <form string="Factory Issue">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset"   type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="process_id"/>
+                                <field name="employee_id"/>
+                            </group>
+                            <group>
+                                <field name="ledger_id"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <field name="line_ids">
+                            <list editable="bottom">
+                                <field name="packet_id"/>
+                                <field name="barcode" readonly="1"/>
+                                <field name="pcs"/>
+                                <field name="cts"/>
+                                <field name="note"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_diamond_factory_issue_list" model="ir.ui.view">
+            <field name="name">diamond.factory.issue.list</field>
+            <field name="model">diamond.factory.issue</field>
+            <field name="arch" type="xml">
+                <list><field name="name"/><field name="date"/><field name="employee_id"/><field name="process_id"/>
+                    <field name="total_pcs"/><field name="total_cts"/><field name="state"/></list>
+            </field>
+        </record>
+        <record id="action_diamond_factory_issue" model="ir.actions.act_window">
+            <field name="name">Factory Issue (F5)</field>
+            <field name="res_model">diamond.factory.issue</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_factory_issue" name="F5 Factory Issue" parent="menu_diamond_transaction_root"
+                  action="action_diamond_factory_issue" sequence="50"/>
+
+        <!-- Factory Receive (F6) -->
+        <record id="view_diamond_factory_receive_form" model="ir.ui.view">
+            <field name="name">diamond.factory.receive.form</field>
+            <field name="model">diamond.factory.receive</field>
+            <field name="arch" type="xml">
+                <form string="Factory Receive">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset"   type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="process_id"/>
+                                <field name="employee_id"/>
+                            </group>
+                            <group>
+                                <field name="ledger_id"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <field name="line_ids">
+                            <list editable="bottom">
+                                <field name="packet_id"/>
+                                <field name="barcode" readonly="1"/>
+                                <field name="pcs"/>
+                                <field name="cts"/>
+                                <field name="issue_cts" readonly="1" optional="show"/>
+                                <field name="loss_cts"/>
+                                <field name="unprocessed"/>
+                                <field name="session_issue_cts" readonly="1" optional="hide"/>
+                                <field name="labour_loss_cts" readonly="1" optional="show"/>
+                                <field name="party_labour_amount" readonly="1"/>
+                                <field name="worker_labour_amount" readonly="1"/>
+                                <field name="note"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_diamond_factory_receive_list" model="ir.ui.view">
+            <field name="name">diamond.factory.receive.list</field>
+            <field name="model">diamond.factory.receive</field>
+            <field name="arch" type="xml">
+                <list><field name="name"/><field name="date"/><field name="employee_id"/><field name="process_id"/>
+                    <field name="total_pcs"/><field name="total_cts"/><field name="state"/></list>
+            </field>
+        </record>
+        <record id="action_diamond_factory_receive" model="ir.actions.act_window">
+            <field name="name">Factory Receive (F6)</field>
+            <field name="res_model">diamond.factory.receive</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_factory_receive" name="F6 Factory Receive" parent="menu_diamond_transaction_root"
+                  action="action_diamond_factory_receive" sequence="55"/>
+
+    </data>
+</odoo>

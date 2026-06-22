@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Account Group -->
+        <record id="view_diamond_account_group_list" model="ir.ui.view">
+            <field name="name">diamond.account.group.list</field>
+            <field name="model">diamond.account.group</field>
+            <field name="arch" type="xml">
+                <list string="Account Group" editable="bottom">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="nature"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_account_group" model="ir.actions.act_window">
+            <field name="name">Account Groups</field>
+            <field name="res_model">diamond.account.group</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_account_group" name="Account Groups" parent="menu_diamond_master_party"
+                  action="action_diamond_account_group" sequence="10"/>
+
+        <!-- Ledger / Party -->
+        <record id="view_diamond_ledger_list" model="ir.ui.view">
+            <field name="name">diamond.ledger.list</field>
+            <field name="model">diamond.ledger</field>
+            <field name="arch" type="xml">
+                <list string="Parties / Ledgers">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="party_type"/>
+                    <field name="account_group_id"/>
+                    <field name="barcode"/>
+                    <field name="city"/>
+                    <field name="phone"/>
+                    <field name="gst_no"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_ledger_form" model="ir.ui.view">
+            <field name="name">diamond.ledger.form</field>
+            <field name="model">diamond.ledger</field>
+            <field name="arch" type="xml">
+                <form string="Party / Ledger">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="Party Name"/></h1>
+                            <h3><field name="code" placeholder="Code"/></h3>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="party_type"/>
+                                <field name="account_group_id"/>
+                                <field name="barcode"/>
+                                <field name="opening_balance"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="active"/>
+                            </group>
+                            <group>
+                                <field name="phone"/>
+                                <field name="mobile"/>
+                                <field name="email"/>
+                                <field name="gst_no"/>
+                                <field name="pan_no"/>
+                            </group>
+                        </group>
+                        <group string="Address">
+                            <field name="address_line"/>
+                            <field name="city"/>
+                            <field name="state"/>
+                            <field name="zip"/>
+                            <field name="country"/>
+                        </group>
+                        <group string="Note"><field name="note" nolabel="1"/></group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_ledger_search" model="ir.ui.view">
+            <field name="name">diamond.ledger.search</field>
+            <field name="model">diamond.ledger</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="barcode"/>
+                    <field name="phone"/>
+                    <filter name="customers" string="Customers" domain="[('party_type','=','customer')]"/>
+                    <filter name="suppliers" string="Suppliers" domain="[('party_type','=','supplier')]"/>
+                    <filter name="jobworkers" string="Jobworkers" domain="[('party_type','=','jobworker')]"/>
+                    <filter name="hpht" string="HPHT Vendors" domain="[('party_type','=','hpht_vendor')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="grp_type" string="Party Type" context="{'group_by':'party_type'}"/>
+                        <filter name="grp_acct" string="Account Group" context="{'group_by':'account_group_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_diamond_ledger" model="ir.actions.act_window">
+            <field name="name">Parties / Ledgers</field>
+            <field name="res_model">diamond.ledger</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_diamond_ledger_search"/>
+        </record>
+        <menuitem id="menu_diamond_ledger" name="Parties / Ledgers" parent="menu_diamond_master_party"
+                  action="action_diamond_ledger" sequence="20"/>
+
+    </data>
+</odoo>

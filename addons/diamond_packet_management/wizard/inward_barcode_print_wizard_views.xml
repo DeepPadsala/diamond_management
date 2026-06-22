@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_inward_barcode_print_wizard_form" model="ir.ui.view">
+            <field name="name">diamond.inward.barcode.print.wizard.form</field>
+            <field name="model">diamond.inward.barcode.print.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Print Barcode Labels">
+                    <sheet>
+                        <div class="text-center mb-3">
+                            <h2>Print Barcode Labels?</h2>
+                            <p class="text-muted">
+                                One thermal label per packet (Code128 barcode).
+                                Send to your barcode printer from the PDF viewer.
+                            </p>
+                        </div>
+                        <group>
+                            <field name="summary" readonly="1" nolabel="1"/>
+                            <field name="label_count" readonly="1" string="Labels to print"/>
+                            <field name="inward_id" invisible="1"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_print_barcodes"
+                                string="Yes, Print Barcodes"
+                                type="object"
+                                class="btn-primary"
+                                data-hotkey="q"/>
+                        <button name="action_skip_print"
+                                string="No, Skip"
+                                type="object"
+                                class="btn-secondary"
+                                data-hotkey="x"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

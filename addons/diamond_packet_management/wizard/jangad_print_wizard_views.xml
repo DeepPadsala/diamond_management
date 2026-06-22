@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_jangad_print_wizard_form" model="ir.ui.view">
+            <field name="name">diamond.jangad.print.wizard.form</field>
+            <field name="model">diamond.jangad.print.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Print Jangad">
+                    <sheet>
+                        <div class="text-center mb-3">
+                            <h2>Print Jangad?</h2>
+                            <p class="text-muted">
+                                80mm thermal slip (RP3200 Plus). Click Yes to open the
+                                print dialog and choose your printer.
+                            </p>
+                        </div>
+                        <group>
+                            <field name="summary" readonly="1" nolabel="1"/>
+                            <field name="slip_count" readonly="1" string="Slips to print"/>
+                            <field name="res_model" invisible="1"/>
+                            <field name="res_id" invisible="1"/>
+                            <field name="movement_type" invisible="1"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_print_jangad"
+                                string="Yes, Print Jangad"
+                                type="object"
+                                class="btn-primary"
+                                data-hotkey="q"/>
+                        <button name="action_skip_print"
+                                string="No, Skip"
+                                type="object"
+                                class="btn-secondary"
+                                data-hotkey="x"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

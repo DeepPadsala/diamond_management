@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_diamond_process_list" model="ir.ui.view">
+            <field name="name">diamond.process.list</field>
+            <field name="model">diamond.process</field>
+            <field name="arch" type="xml">
+                <list string="Process Master" editable="bottom">
+                    <field name="sequence_no" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="process_type"/>
+                    <field name="expected_days"/>
+                    <field name="expected_loss_pct"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_process" model="ir.actions.act_window">
+            <field name="name">Processes</field>
+            <field name="res_model">diamond.process</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_process" name="Process" parent="menu_diamond_master_workflow" action="action_diamond_process" sequence="10"/>
+    </data>
+</odoo>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="paperformat_barcode_label_50x30" model="report.paperformat">
+            <field name="name">Barcode Label 50x30mm</field>
+            <field name="default" eval="False"/>
+            <field name="format">custom</field>
+            <field name="page_width">50</field>
+            <field name="page_height">30</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="disable_shrinking" eval="True"/>
+            <field name="dpi">203</field>
+        </record>
+
+        <record id="action_report_diamond_packet_barcode_label" model="ir.actions.report">
+            <field name="name">Packet Barcode Labels (PDF)</field>
+            <field name="model">diamond.inward</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">diamond_packet_management.report_packet_barcode_label</field>
+            <field name="report_file">diamond_packet_management.report_packet_barcode_label</field>
+            <field name="paperformat_id" ref="paperformat_barcode_label_50x30"/>
+            <field name="print_report_name">'Barcode-%s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_diamond_inward"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <record id="action_report_diamond_packet_barcode_label_zpl" model="ir.actions.report">
+            <field name="name">Packet Barcode Labels (ZPL)</field>
+            <field name="model">diamond.inward</field>
+            <field name="report_type">qweb-text</field>
+            <field name="report_name">diamond_packet_management.pkt_barcode_zpl</field>
+            <field name="report_file">diamond_packet_management.pkt_barcode_zpl</field>
+            <field name="print_report_name">'Barcode-%s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_diamond_inward"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- One physical label = one 50×30 mm page. Must include <main> for Odoo 18 PDF. -->
+        <template id="report_packet_barcode_label">
+            <t t-translation="off">
+                <html>
+                    <head>
+                        <meta charset="utf-8"/>
+                        <style>
+                            @page {
+                                size: 50mm 30mm;
+                                margin: 0;
+                            }
+                            html, body, main {
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .label-page {
+                                width: 50mm;
+                                height: 30mm;
+                                max-height: 30mm;
+                                overflow: hidden;
+                                page-break-after: always;
+                                page-break-inside: avoid;
+                                box-sizing: border-box;
+                                padding: 0.8mm 1mm 0.5mm;
+                                font-family: Arial, Helvetica, sans-serif;
+                                text-align: center;
+                            }
+                            .label-page:last-child {
+                                page-break-after: avoid;
+                            }
+                            .barcode-img {
+                                height: 11mm;
+                                line-height: 0;
+                                margin: 0 auto;
+                            }
+                            .barcode-img img {
+                                width: 47mm;
+                                height: 11mm;
+                                display: block;
+                                margin: 0 auto;
+                                image-rendering: pixelated;
+                            }
+                            .barcode-text {
+                                font-size: 6.5pt;
+                                font-weight: bold;
+                                line-height: 1;
+                                letter-spacing: 0.3px;
+                                margin: 0.4mm 0 0.3mm;
+                            }
+                            .label-line1 {
+                                font-size: 5.5pt;
+                                line-height: 1.1;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            }
+                            .label-line2 {
+                                font-size: 5pt;
+                                line-height: 1.1;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <main>
+                            <t t-foreach="labels" t-as="label">
+                                <div class="label-page">
+                                    <div class="barcode-img">
+                                        <img t-attf-src="/report/barcode/Code128/#{label['barcode']}?width=900&amp;height=150&amp;quiet=1&amp;humanreadable=0"
+                                             alt=""/>
+                                    </div>
+                                    <div class="barcode-text">
+                                        <t t-esc="label['barcode']"/>
+                                    </div>
+                                    <div class="label-line1">
+                                        <t t-if="label['user_packet_no']">Pkt:<t t-esc="label['user_packet_no']"/> | </t>
+                                        Seq:<t t-esc="label['packet_no']"/>
+                                        <t t-if="label['party']"> | <t t-esc="label['party']"/></t>
+                                    </div>
+                                    <div class="label-line2">
+                                        <t t-esc="label['shape']"/>
+                                        <t t-if="label['color']"> <t t-esc="label['color']"/></t>
+                                        <t t-if="label['clarity']"> <t t-esc="label['clarity']"/></t>
+                                        | <t t-esc="'%.3f' % label['cts']"/> ct
+                                    </div>
+                                </div>
+                            </t>
+                        </main>
+                    </body>
+                </html>
+            </t>
+        </template>
+
+        <!-- 50x30mm thermal label — ZPL for Zebra / TSC (ZPL mode) barcode printers -->
+        <template id="pkt_barcode_zpl">
+            <t t-foreach="labels" t-as="label">
+                <t t-translation="off">
+^XA^CI28
+^PW400
+^LL240
+^FO10,8^A0N,18,16^FD<t t-if="label['user_packet_no']">Pkt:<t t-esc="label['user_packet_no']"/> | </t>Seq:<t t-esc="label['packet_no']"/>^FS
+<t t-if="label['kapan_no']">^FO10,30^A0N,16,14^FDKapan:<t t-esc="label['kapan_no']"/>^FS
+</t>
+^FO10,52^BY2,2,45
+^BCN,45,Y,N,N
+^FD<t t-esc="label['barcode']"/>^FS
+^FO10,115^A0N,16,14^FD<t t-esc="label['barcode']"/>^FS
+^FO10,138^A0N,14,12^FD<t t-esc="label['shape']"/> <t t-esc="label['color']"/> <t t-esc="label['clarity']"/> | <t t-esc="'%.3f' % label['cts']"/> ct^FS
+<t t-if="label['party']">^FO10,158^A0N,14,12^FD<t t-esc="label['party']"/>^FS
+</t>
+^XZ
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

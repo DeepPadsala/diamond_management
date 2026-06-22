@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_barcode_search_form" model="ir.ui.view">
+            <field name="name">diamond.barcode.search.form</field>
+            <field name="model">diamond.barcode.search</field>
+            <field name="arch" type="xml">
+                <form string="Scan Barcode">
+                    <sheet>
+                        <h1 class="text-center">
+                            <i class="fa fa-barcode"/>
+                            Scan Packet Barcode
+                        </h1>
+                        <group>
+                            <field name="barcode" placeholder="Aim the gun and pull trigger…" autofocus="1"/>
+                            <field name="party_barcode" placeholder="…or scan a Party barcode"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_search" string="Search &amp; Open" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_barcode_search" model="ir.actions.act_window">
+            <field name="name">Scan Barcode</field>
+            <field name="res_model">diamond.barcode.search</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_diamond_barcode_search" name="Scan Barcode (Gun)"
+                  parent="menu_diamond_utility_root"
+                  action="action_diamond_barcode_search" sequence="10"/>
+
+    </data>
+</odoo>

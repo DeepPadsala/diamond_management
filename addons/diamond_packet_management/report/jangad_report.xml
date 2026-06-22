@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="paperformat_jangad_80mm" model="report.paperformat">
+            <field name="name">Jangad 80mm (RP3200)</field>
+            <field name="default" eval="False"/>
+            <field name="format">custom</field>
+            <field name="page_width">80</field>
+            <field name="page_height">200</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">2</field>
+            <field name="margin_bottom">2</field>
+            <field name="margin_left">2</field>
+            <field name="margin_right">2</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="action_report_diamond_jangad" model="ir.actions.report">
+            <field name="name">Jangad Slip</field>
+            <field name="model">diamond.jangad.print.wizard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">diamond_packet_management.report_jangad_slip</field>
+            <field name="report_file">diamond_packet_management.report_jangad_slip</field>
+            <field name="paperformat_id" ref="paperformat_jangad_80mm"/>
+            <field name="print_report_name">'Jangad'</field>
+        </record>
+
+        <template id="report_jangad_slip">
+            <t t-call="web.html_container">
+                <style>
+                    .jangad-page {
+                        font-family: "Courier New", Courier, monospace;
+                        font-size: 11px;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 2mm 0;
+                        page-break-after: always;
+                    }
+                    .jangad-page:last-child {
+                        page-break-after: auto;
+                    }
+                    .jangad-title {
+                        border: 1px solid #000;
+                        text-align: center;
+                        font-weight: bold;
+                        padding: 4px 2px;
+                        margin-bottom: 6px;
+                    }
+                    .jangad-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .jangad-table td {
+                        padding: 2px 0;
+                        vertical-align: top;
+                    }
+                    .jangad-label {
+                        white-space: nowrap;
+                        width: 32%;
+                    }
+                    .jangad-colon {
+                        width: 4%;
+                    }
+                    .jangad-value {
+                        width: 64%;
+                    }
+                </style>
+                <t t-foreach="slips" t-as="slip">
+                    <div class="jangad-page">
+                        <div class="jangad-title">
+                            <t t-esc="slip['title']"/>
+                        </div>
+                        <table class="jangad-table">
+                            <tr t-if="slip['show_employee']">
+                                <td class="jangad-label">Emp Name</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['emp_name']"/></td>
+                            </tr>
+                            <tr t-if="slip['show_employee']">
+                                <td class="jangad-label">Emp Code</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['emp_code']"/></td>
+                            </tr>
+                            <tr t-if="slip['show_party']">
+                                <td class="jangad-label">Party</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['party_code']"/> <t t-esc="slip['party_name']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">PacketNo</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['packet_no']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">Issue Wt</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="'%.2f' % slip['issue_wt']"/></td>
+                            </tr>
+                            <tr t-if="slip['return_date']">
+                                <td class="jangad-label">Return Wt</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="'%.2f' % slip['return_wt']"/></td>
+                            </tr>
+                            <tr t-if="slip['return_date']">
+                                <td class="jangad-label">Loss Wt</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="'%.2f' % slip['loss_wt']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">Issue Date</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['issue_date']"/></td>
+                            </tr>
+                            <tr t-if="slip['return_date']">
+                                <td class="jangad-label">Return Date</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['return_date']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">Process</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="slip['process']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">Rate</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="'%.2f' % slip['rate']"/></td>
+                            </tr>
+                            <tr>
+                                <td class="jangad-label">Amount</td>
+                                <td class="jangad-colon">:</td>
+                                <td class="jangad-value"><t t-esc="'%.2f' % slip['amount']"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_packet_history_list" model="ir.ui.view">
+            <field name="name">diamond.packet.history.list</field>
+            <field name="model">diamond.packet.history</field>
+            <field name="arch" type="xml">
+                <list string="Packet History">
+                    <field name="create_date"/>
+                    <field name="packet_id"/>
+                    <field name="action"/>
+                    <field name="state"/>
+                    <field name="location"/>
+                    <field name="process_id"/>
+                    <field name="ledger_id"/>
+                    <field name="employee_id"/>
+                    <field name="rdy_pcs"/>
+                    <field name="rdy_cts"/>
+                    <field name="user_id"/>
+                    <field name="note"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_packet_history_search" model="ir.ui.view">
+            <field name="name">diamond.packet.history.search</field>
+            <field name="model">diamond.packet.history</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="packet_id"/>
+                    <field name="action"/>
+                    <field name="ledger_id"/>
+                    <field name="employee_id"/>
+                    <field name="user_id"/>
+                    <group expand="0" string="Group By">
+                        <filter name="grp_packet" string="Packet" context="{'group_by':'packet_id'}"/>
+                        <filter name="grp_action" string="Action" context="{'group_by':'action'}"/>
+                        <filter name="grp_user" string="User" context="{'group_by':'user_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_diamond_packet_history" model="ir.actions.act_window">
+            <field name="name">Packet History</field>
+            <field name="res_model">diamond.packet.history</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_diamond_packet_history_search"/>
+        </record>
+        <menuitem id="menu_diamond_packet_history" name="All Movements" parent="menu_diamond_history_root"
+                  action="action_diamond_packet_history" sequence="10"/>
+
+    </data>
+</odoo>

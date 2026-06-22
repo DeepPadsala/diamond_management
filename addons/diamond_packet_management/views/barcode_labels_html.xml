@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!--
+            Barcode label — 50×30 mm thermal label.
+
+            Layout (inspired by reference):
+            ┌──────────────────────┬───────────────┐
+            │  COMPANY NAME        │  DD/MM        │  ← row 1
+            ├──────────────────────┼───────────────┤
+            │  MAD-8               │  PKT / kapan  │  ← row 2
+            ├──────────────────────┼───────────────┤
+            │  RW: 2.410           │  PW: 2.000    │  ← row 3
+            ├──────────────────────┴───────────────┤
+            │  PR  EX  VVS1                        │  ← row 4
+            ├──────────────────────────────────────┤
+            │  ▌▌▐▌▌▐▐▌▌▐▌▌▐▐▌▌▐▌▌▐▐▌  (barcode)  │  ← row 5
+            │              MAD-8                   │  ← row 6
+            └──────────────────────────────────────┘
+        -->
+        <template id="tmpl_barcode_labels_print">
+            <t t-translation="off">
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+@page {
+    size: 50mm 30mm;
+    margin: 0;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 50mm;
+    background: #fff;
+}
+
+/* ── One label = one page ──────────────────────────────── */
+.lbl {
+    width: 50mm;
+    height: 30mm;
+    overflow: hidden;
+    page-break-after: always;
+    page-break-inside: avoid;
+    padding: 0.4mm 0.5mm;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.lbl:last-child { page-break-after: avoid; }
+
+/* ── Info grid (top section) ───────────────────────────── */
+table.info {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+table.info td {
+    border: 0.4pt solid #000;
+    padding: 0 1mm;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    height: 3.8mm;
+}
+
+/* ── Column widths ─────────────────────────────────────── */
+.col-left  { width: 55%; }
+.col-right { width: 45%; }
+.col-full  { width: 100%; }
+
+/* ── Text styles ──────────────────────────────────────── */
+.t-company {
+    font-size: 6.5pt;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+.t-date {
+    font-size: 6.5pt;
+    font-weight: bold;
+    text-align: right;
+}
+.t-barval {
+    font-size: 7pt;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.t-pkt {
+    font-size: 6.5pt;
+    font-weight: bold;
+    text-align: right;
+}
+.t-weight {
+    font-size: 6.5pt;
+    font-weight: bold;
+}
+.t-weight-r {
+    font-size: 6.5pt;
+    font-weight: bold;
+    text-align: right;
+}
+.t-cps {
+    font-size: 6pt;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+}
+
+/* ── Barcode section ───────────────────────────────────── */
+.bc-wrap {
+    border: 0.4pt solid #000;
+    border-top: none;
+    text-align: center;
+    padding: 0.2mm 0 0.1mm;
+}
+.bc-img {
+    display: block;
+    width: 47mm;
+    height: 8.5mm;
+    margin: 0 auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+.bc-text {
+    font-size: 6pt;
+    font-weight: bold;
+    letter-spacing: 1px;
+    line-height: 1;
+    margin-top: 0.2mm;
+}
+</style>
+</head>
+<body>
+<t t-foreach="labels" t-as="label">
+<div class="lbl">
+
+    <!-- ── Info grid ── -->
+    <table class="info">
+        <!-- Row 1: Company name | Date -->
+        <tr>
+            <td class="col-left t-company">
+                <t t-esc="label['company_name']"/>
+            </td>
+            <td class="col-right t-date">
+                <t t-esc="label['date']"/>
+            </td>
+        </tr>
+        <!-- Row 2: Barcode value | Packet / kapan no -->
+        <tr>
+            <td class="col-left t-barval">
+                <t t-esc="label['barcode']"/>
+            </td>
+            <td class="col-right t-pkt">
+                <t t-if="label['user_packet_no']"><t t-esc="label['user_packet_no']"/></t>
+                <t t-elif="label['kapan_no']"><t t-esc="label['kapan_no']"/></t>
+                <t t-else=""><t t-esc="label['packet_no']"/></t>
+            </td>
+        </tr>
+        <!-- Row 3: Rough weight | Polish weight -->
+        <tr>
+            <td class="col-left t-weight">
+                RW: <t t-esc="'%.3f' % label['rough_cts']"/>
+            </td>
+            <td class="col-right t-weight-r">
+                PW: <t t-esc="'%.3f' % label['polish_cts']"/>
+            </td>
+        </tr>
+        <!-- Row 4: Shape / Color / Clarity (full width) -->
+        <tr>
+            <td colspan="2" class="col-full t-cps">
+                <t t-esc="label['cps'] or label['shape']"/>
+                <t t-if="label['party']">
+                    &#160;&#160;
+                    <t t-esc="label['party']"/>
+                </t>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── Barcode image + human-readable value ── -->
+    <div class="bc-wrap">
+        <!--
+            width=900&height=150 → Odoo generates a 900×150 px PNG.
+            Short barcode (MAD-8 ≈ 90 modules, 47mm area):
+              900 / 90 = 10 px/module in source → after 2× downscale = 5 px/module
+            Each printed bar will be ≥ 2 printer dots → bold, scannable.
+        -->
+        <img class="bc-img"
+             t-attf-src="/report/barcode/Code128/#{label['barcode']}?width=900&amp;height=150&amp;quiet=1&amp;humanreadable=0"/>
+        <div class="bc-text"><t t-esc="label['barcode']"/></div>
+    </div>
+
+</div>
+</t>
+<script>
+/* Print from inside this page — required for ngrok / remote access.
+   Parent-window iframe.print() is blocked once the user-click gesture
+   expires (after the async RPC). Self-initiated print on load is allowed. */
+(function () {
+    function waitForImages() {
+        var imgs = Array.prototype.slice.call(document.images);
+        if (!imgs.length) {
+            return Promise.resolve();
+        }
+        return Promise.all(imgs.map(function (img) {
+            if (img.complete &amp;&amp; img.naturalHeight > 0) {
+                return Promise.resolve();
+            }
+            return new Promise(function (resolve) {
+                img.addEventListener("load", resolve, { once: true });
+                img.addEventListener("error", resolve, { once: true });
+            });
+        }));
+    }
+    function triggerPrint() {
+        waitForImages().then(function () {
+            requestAnimationFrame(function () {
+                window.focus();
+                window.print();
+            });
+        });
+    }
+    if (document.readyState === "complete") {
+        triggerPrint();
+    } else {
+        window.addEventListener("load", triggerPrint, { once: true });
+    }
+})();
+</script>
+</body>
+</html>
+            </t>
+        </template>
+
+    </data>
+</odoo>

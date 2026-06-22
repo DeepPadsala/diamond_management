@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_diamond_price_list" model="ir.ui.view">
+            <field name="name">diamond.price.list</field>
+            <field name="model">diamond.price</field>
+            <field name="arch" type="xml">
+                <list string="Price Master" editable="bottom">
+                    <field name="shape_id"/>
+                    <field name="color_id"/>
+                    <field name="clarity_id"/>
+                    <field name="from_cts"/>
+                    <field name="to_cts"/>
+                    <field name="rate_per_cts"/>
+                    <field name="discount_pct"/>
+                    <field name="valid_from"/>
+                    <field name="valid_to"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_price" model="ir.actions.act_window">
+            <field name="name">Price Master</field>
+            <field name="res_model">diamond.price</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_price" name="Price Master" parent="menu_diamond_master_other"
+                  action="action_diamond_price" sequence="30"/>
+    </data>
+</odoo>

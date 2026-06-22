@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_inward_list" model="ir.ui.view">
+            <field name="name">diamond.inward.list</field>
+            <field name="model">diamond.inward</field>
+            <field name="arch" type="xml">
+                <list string="Inward Entries"
+                      decoration-info="state=='draft'"
+                      decoration-success="state=='confirmed'"
+                      decoration-muted="state=='cancelled'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="ledger_id"/>
+                    <field name="party_barcode"/>
+                    <field name="ref"/>
+                    <field name="total_pcs"/>
+                    <field name="total_cts"/>
+                    <field name="total_amount"/>
+                    <field name="state"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_inward_form" model="ir.ui.view">
+            <field name="name">diamond.inward.form</field>
+            <field name="model">diamond.inward</field>
+            <field name="arch" type="xml">
+                <form string="Inward">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_print_barcodes" string="Print Barcodes" type="object"
+                                invisible="state!='confirmed'" icon="fa-barcode"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset to Draft" type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="ledger_id" required="1"/>
+                                <field name="party_barcode"/>
+                            </group>
+                            <group>
+                                <field name="ref"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Lines" name="lines">
+                                <field name="line_ids">
+                                    <list editable="bottom">
+                                        <field name="barcode" readonly="1" optional="show" column_invisible="parent.state == 'draft'"/>
+                                        <field name="kapan_no"/>
+                                        <field name="user_packet_no"/>
+                                        <field name="sequence_packet_no" readonly="1" optional="show"/>
+                                        <field name="process_id"/>
+                                        <field name="org_cts"/>
+                                        <field name="expected_cts"/>
+                                        <field name="shape_id"/>
+                                        <field name="color_id"/>
+                                        <field name="clarity_id"/>
+                                        <field name="cut_id"/>
+                                        <field name="polish_id"/>
+                                        <field name="symmetry_id"/>
+                                        <field name="org_pcs" column_invisible="1"/>
+                                        <field name="rate_per_cts" column_invisible="1"/>
+                                        <field name="amount" column_invisible="1"/>
+                                        <field name="packet_id" column_invisible="1"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right">
+                                    <field name="total_pcs"/>
+                                    <field name="total_cts"/>
+                                    <field name="total_amount"/>
+                                </group>
+                            </page>
+                            <page string="Note"><field name="note"/></page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_inward" model="ir.actions.act_window">
+            <field name="name">Inward Entry</field>
+            <field name="res_model">diamond.inward</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_inward" name="Inward Entry" parent="menu_diamond_stock_root"
+                  action="action_diamond_inward" sequence="15"/>
+
+    </data>
+</odoo>

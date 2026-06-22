@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ─────────────────────── Wizard form ─────────────────────── -->
+        <record id="view_diamond_packet_issue_wizard_form" model="ir.ui.view">
+            <field name="name">diamond.packet.issue.wizard.form</field>
+            <field name="model">diamond.packet.issue.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Issue Packet(s)">
+                    <sheet>
+                        <h1 class="text-center">
+                            <i class="fa fa-share-square-o me-2"/>
+                            Issue Packet(s)
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="mode" widget="radio"/>
+                                <field name="date" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                            <group string="Summary" invisible="1">
+                                <field name="packet_count" readonly="1"/>
+                                <field name="total_pcs" readonly="1"/>
+                                <field name="total_cts" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <group string="Destination">
+                            <!-- Hidden helper fields that drive required-ness / visibility -->
+                            <field name="is_party_required" invisible="1"/>
+                            <field name="is_employee_required" invisible="1"/>
+                            <field name="show_party" invisible="1"/>
+                            <field name="show_expected_return" invisible="1"/>
+                            <field name="ledger_domain" invisible="1"/>
+
+                            <field name="process_id"
+                                   required="1"
+                                   options="{'no_create_edit': True}"/>
+                            <field name="ledger_id"
+                                   string="Party / Vendor"
+                                   invisible="not show_party"
+                                   required="is_party_required"
+                                   options="{'no_create_edit': True}"/>
+                            <field name="employee_id"
+                                   required="is_employee_required"
+                                   options="{'no_create_edit': True}"/>
+                            <field name="expected_return_date"
+                                   invisible="not show_expected_return"
+                                   required="show_expected_return"/>
+                        </group>
+
+                        <notebook>
+                            <page string="Packets to Issue">
+                                <field name="packet_ids">
+                                    <list create="false" delete="true">
+                                        <field name="packet_no"/>
+                                        <field name="barcode"/>
+                                        <field name="kapan_no"/>
+                                        <field name="shape_id"/>
+                                        <field name="color_id"/>
+                                        <field name="clarity_id"/>
+                                        <field name="rdy_pcs"/>
+                                        <field name="rdy_cts"/>
+                                        <field name="state"/>
+                                        <field name="current_holder_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Note">
+                                <field name="note"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <footer>
+                        <button name="action_issue"
+                                string="Issue &amp; Confirm"
+                                type="object"
+                                class="btn-primary"
+                                data-hotkey="q"/>
+                        <button string="Cancel"
+                                class="btn-secondary"
+                                special="cancel"
+                                data-hotkey="x"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ─────────────────────── Direct action (one-off) ─────────────────────── -->
+        <record id="action_diamond_packet_issue_wizard" model="ir.actions.act_window">
+            <field name="name">Issue Packet(s)</field>
+            <field name="res_model">diamond.packet.issue.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list,form</field>
+        </record>
+
+        <!-- ─────────── Server actions: bound to packet list "Action" menu ─────────── -->
+        <!-- These add quick "F1 / F5 / F7 / F12" entries to the action dropdown
+             once the user selects rows in the packet / live-stock list. -->
+
+        <record id="action_packet_issue_process_server" model="ir.actions.server">
+            <field name="name">Process Issue (Selected)</field>
+            <field name="model_id" ref="model_diamond_packet"/>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = {
+    "type": "ir.actions.act_window",
+    "name": "Issue Packet(s)",
+    "res_model": "diamond.packet.issue.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "active_ids": records.ids,
+        "active_model": "diamond.packet",
+        "default_issue_mode": "process",
+    },
+}</field>
+        </record>
+
+        <record id="action_packet_issue_factory_server" model="ir.actions.server">
+            <field name="name">Factory Issue (Selected)</field>
+            <field name="model_id" ref="model_diamond_packet"/>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = {
+    "type": "ir.actions.act_window",
+    "name": "Issue Packet(s)",
+    "res_model": "diamond.packet.issue.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "active_ids": records.ids,
+        "active_model": "diamond.packet",
+        "default_issue_mode": "factory",
+    },
+}</field>
+        </record>
+
+        <record id="action_packet_issue_jobwork_server" model="ir.actions.server">
+            <field name="name">Jobwork Issue (Selected)</field>
+            <field name="model_id" ref="model_diamond_packet"/>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = {
+    "type": "ir.actions.act_window",
+    "name": "Issue Packet(s)",
+    "res_model": "diamond.packet.issue.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "active_ids": records.ids,
+        "active_model": "diamond.packet",
+        "default_issue_mode": "jobwork",
+    },
+}</field>
+        </record>
+
+        <record id="action_packet_issue_hpht_server" model="ir.actions.server">
+            <field name="name">HPHT Issue (Selected)</field>
+            <field name="model_id" ref="model_diamond_packet"/>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = {
+    "type": "ir.actions.act_window",
+    "name": "Issue Packet(s)",
+    "res_model": "diamond.packet.issue.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "active_ids": records.ids,
+        "active_model": "diamond.packet",
+        "default_issue_mode": "hpht",
+    },
+}</field>
+        </record>
+
+    </data>
+</odoo>

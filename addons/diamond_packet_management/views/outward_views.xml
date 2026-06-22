@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_outward_list" model="ir.ui.view">
+            <field name="name">diamond.outward.list</field>
+            <field name="model">diamond.outward</field>
+            <field name="arch" type="xml">
+                <list string="Outward Entries"
+                      decoration-info="state=='draft'"
+                      decoration-success="state=='confirmed'"
+                      decoration-muted="state=='cancelled'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="ledger_id"/>
+                    <field name="ref"/>
+                    <field name="transport"/>
+                    <field name="total_pcs"/>
+                    <field name="total_cts"/>
+                    <field name="total_amount"/>
+                    <field name="state"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_outward_form" model="ir.ui.view">
+            <field name="name">diamond.outward.form</field>
+            <field name="model">diamond.outward</field>
+            <field name="arch" type="xml">
+                <form string="Outward">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state!='draft'"/>
+                        <button name="action_cancel"  string="Cancel"  type="object" invisible="state=='cancelled'"/>
+                        <button name="action_draft"   string="Reset to Draft" type="object" invisible="state=='draft'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="ledger_id" required="1"/>
+                                <field name="ref"/>
+                            </group>
+                            <group>
+                                <field name="transport"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Lines">
+                                <field name="line_ids">
+                                    <list editable="bottom">
+                                        <field name="packet_id"/>
+                                        <field name="barcode" readonly="1"/>
+                                        <field name="pcs"/>
+                                        <field name="cts"/>
+                                        <field name="rate_per_cts"/>
+                                        <field name="amount" readonly="1"/>
+                                        <field name="note"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right">
+                                    <field name="total_pcs"/>
+                                    <field name="total_cts"/>
+                                    <field name="total_amount"/>
+                                </group>
+                            </page>
+                            <page string="Note"><field name="note"/></page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_outward" model="ir.actions.act_window">
+            <field name="name">Outward Entry</field>
+            <field name="res_model">diamond.outward</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_outward" name="Outward Entry" parent="menu_diamond_transaction_root"
+                  action="action_diamond_outward" sequence="20"/>
+
+    </data>
+</odoo>

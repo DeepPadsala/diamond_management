@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_diamond_product_list" model="ir.ui.view">
+            <field name="name">diamond.product.list</field>
+            <field name="model">diamond.product</field>
+            <field name="arch" type="xml">
+                <list string="Product Master">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="product_type"/>
+                    <field name="default_shape_id"/>
+                    <field name="default_color_id"/>
+                    <field name="default_clarity_id"/>
+                    <field name="standard_cost"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_product_form" model="ir.ui.view">
+            <field name="name">diamond.product.form</field>
+            <field name="model">diamond.product</field>
+            <field name="arch" type="xml">
+                <form string="Product">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="Product Name"/></h1>
+                            <h3><field name="code" placeholder="Code"/></h3>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="product_type"/>
+                                <field name="standard_cost"/>
+                                <field name="hs_code"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="active"/>
+                            </group>
+                            <group string="Defaults">
+                                <field name="default_shape_id"/>
+                                <field name="default_color_id"/>
+                                <field name="default_clarity_id"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_product" model="ir.actions.act_window">
+            <field name="name">Products</field>
+            <field name="res_model">diamond.product</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_product" name="Product Master" parent="menu_diamond_master_other"
+                  action="action_diamond_product" sequence="40"/>
+    </data>
+</odoo>

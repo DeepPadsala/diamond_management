@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_party_labour_list" model="ir.ui.view">
+            <field name="name">diamond.party.labour.list</field>
+            <field name="model">diamond.party.labour</field>
+            <field name="arch" type="xml">
+                <list string="Party Labour Rates" editable="bottom">
+                    <field name="ledger_id"/>
+                    <field name="process_id"/>
+                    <field name="packet_type"/>
+                    <field name="from_cts"/>
+                    <field name="to_cts"/>
+                    <field name="rate"/>
+                    <field name="multiply_by"/>
+                    <field name="multiply_by_weight_loss"/>
+                    <field name="write_date" optional="show"/>
+                    <field name="write_uid" optional="hide"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_party_labour" model="ir.actions.act_window">
+            <field name="name">Party Labour Rates</field>
+            <field name="res_model">diamond.party.labour</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_party_labour" name="Party Labour" parent="menu_diamond_master_workflow"
+                  action="action_diamond_party_labour" sequence="30"/>
+
+        <record id="view_diamond_worker_labour_list" model="ir.ui.view">
+            <field name="name">diamond.worker.labour.list</field>
+            <field name="model">diamond.worker.labour</field>
+            <field name="arch" type="xml">
+                <list string="Worker Labour Rates" editable="bottom">
+                    <field name="process_id"/>
+                    <field name="packet_type"/>
+                    <field name="from_cts"/>
+                    <field name="to_cts"/>
+                    <field name="rate"/>
+                    <field name="multiply_by"/>
+                    <field name="multiply_by_weight_loss"/>
+                    <field name="write_date" optional="show"/>
+                    <field name="write_uid" optional="hide"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+        <record id="action_diamond_worker_labour" model="ir.actions.act_window">
+            <field name="name">Worker Labour Rates</field>
+            <field name="res_model">diamond.worker.labour</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem id="menu_diamond_worker_labour" name="Worker Labour" parent="menu_diamond_master_workflow"
+                  action="action_diamond_worker_labour" sequence="40"/>
+
+    </data>
+</odoo>

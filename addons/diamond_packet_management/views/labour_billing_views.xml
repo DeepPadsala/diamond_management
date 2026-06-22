@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Labour Entries -->
+        <record id="view_diamond_labour_entry_list" model="ir.ui.view">
+            <field name="name">diamond.labour.entry.list</field>
+            <field name="model">diamond.labour.entry</field>
+            <field name="arch" type="xml">
+                <list string="Labour Entries" create="0" edit="0">
+                    <field name="date"/>
+                    <field name="entry_type"/>
+                    <field name="ledger_id" optional="show"/>
+                    <field name="employee_id" optional="show"/>
+                    <field name="process_id"/>
+                    <field name="packet_id"/>
+                    <field name="receive_doc_name"/>
+                    <field name="pcs"/>
+                    <field name="loss_cts" optional="show"/>
+                    <field name="rate"/>
+                    <field name="quantity_basis"/>
+                    <field name="amount" sum="Total"/>
+                    <field name="party_invoice_id" optional="show"/>
+                    <field name="salary_slip_id" optional="show"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'paid'"
+                           decoration-warning="state == 'invoiced'"/>
+                    <field name="period_month" column_invisible="1"/>
+                    <field name="period_year" column_invisible="1"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_labour_entry_search" model="ir.ui.view">
+            <field name="name">diamond.labour.entry.search</field>
+            <field name="model">diamond.labour.entry</field>
+            <field name="arch" type="xml">
+                <search string="Labour Entries">
+                    <field name="ledger_id"/>
+                    <field name="employee_id"/>
+                    <field name="process_id"/>
+                    <field name="packet_id"/>
+                    <filter name="party" string="Party Labour" domain="[('entry_type','=','party')]"/>
+                    <filter name="worker" string="Worker Labour" domain="[('entry_type','=','worker')]"/>
+                    <filter name="open" string="Open" domain="[('state','=','draft')]"/>
+                    <filter name="unbilled_party" string="Unbilled Party"
+                            domain="[('entry_type','=','party'),('state','=','draft'),('party_invoice_id','=',False)]"/>
+                    <filter name="unbilled_worker" string="Unbilled Worker"
+                            domain="[('entry_type','=','worker'),('state','=','draft'),('salary_slip_id','=',False)]"/>
+                    <filter name="invoiced" string="Invoiced" domain="[('state','=','invoiced')]"/>
+                    <filter name="paid" string="Paid" domain="[('state','=','paid')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_party" string="Party" context="{'group_by': 'ledger_id'}"/>
+                        <filter name="group_worker" string="Worker" context="{'group_by': 'employee_id'}"/>
+                        <filter name="group_process" string="Process" context="{'group_by': 'process_id'}"/>
+                        <filter name="group_month" string="Month" context="{'group_by': 'period_month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_diamond_labour_entry" model="ir.actions.act_window">
+            <field name="name">Labour Entries</field>
+            <field name="res_model">diamond.labour.entry</field>
+            <field name="view_mode">list</field>
+            <field name="context">{'search_default_open': 1}</field>
+        </record>
+
+        <!-- Party Invoice -->
+        <record id="view_diamond_party_invoice_list" model="ir.ui.view">
+            <field name="name">diamond.party.invoice.list</field>
+            <field name="model">diamond.party.invoice</field>
+            <field name="arch" type="xml">
+                <list string="Party Invoices">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="ledger_id"/>
+                    <field name="period_month"/>
+                    <field name="period_year"/>
+                    <field name="total_pcs"/>
+                    <field name="total_amount" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'paid'"
+                           decoration-warning="state == 'confirmed'"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_party_invoice_form" model="ir.ui.view">
+            <field name="name">diamond.party.invoice.form</field>
+            <field name="model">diamond.party.invoice</field>
+            <field name="arch" type="xml">
+                <form string="Party Invoice">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_mark_paid" string="Mark Paid" type="object"
+                                class="btn-primary" invisible="state != 'confirmed'"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state in ('paid', 'cancelled')"/>
+                        <button name="action_draft" string="Reset to Draft" type="object"
+                                invisible="state != 'cancelled'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,paid"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="ledger_id" readonly="state != 'draft'"/>
+                                <field name="date" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="period_month" readonly="state != 'draft'"/>
+                                <field name="period_year" readonly="state != 'draft'"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Lines">
+                                <field name="line_ids" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="date"/>
+                                        <field name="process_id"/>
+                                        <field name="packet_id"/>
+                                        <field name="receive_doc_name"/>
+                                        <field name="pcs"/>
+                                        <field name="cts"/>
+                                        <field name="loss_cts"/>
+                                        <field name="rate"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer">
+                                    <field name="total_amount" widget="monetary"/>
+                                </group>
+                            </page>
+                            <page string="Payment" invisible="state == 'draft'">
+                                <group>
+                                    <field name="payment_ref"/>
+                                    <field name="payment_date"/>
+                                    <field name="note"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_party_invoice" model="ir.actions.act_window">
+            <field name="name">Party Invoices</field>
+            <field name="res_model">diamond.party.invoice</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Salary Slip -->
+        <record id="view_diamond_salary_slip_list" model="ir.ui.view">
+            <field name="name">diamond.salary.slip.list</field>
+            <field name="model">diamond.salary.slip</field>
+            <field name="arch" type="xml">
+                <list string="Salary Slips">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="employee_id"/>
+                    <field name="period_month"/>
+                    <field name="period_year"/>
+                    <field name="total_pcs"/>
+                    <field name="total_amount" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'paid'"
+                           decoration-warning="state == 'confirmed'"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_salary_slip_form" model="ir.ui.view">
+            <field name="name">diamond.salary.slip.form</field>
+            <field name="model">diamond.salary.slip</field>
+            <field name="arch" type="xml">
+                <form string="Salary Slip">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_mark_paid" string="Mark Paid" type="object"
+                                class="btn-primary" invisible="state != 'confirmed'"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state in ('paid', 'cancelled')"/>
+                        <button name="action_draft" string="Reset to Draft" type="object"
+                                invisible="state != 'cancelled'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,paid"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id" readonly="state != 'draft'"/>
+                                <field name="date" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="period_month" readonly="state != 'draft'"/>
+                                <field name="period_year" readonly="state != 'draft'"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Lines">
+                                <field name="line_ids" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="date"/>
+                                        <field name="process_id"/>
+                                        <field name="packet_id"/>
+                                        <field name="receive_doc_name"/>
+                                        <field name="pcs"/>
+                                        <field name="cts"/>
+                                        <field name="loss_cts"/>
+                                        <field name="rate"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer">
+                                    <field name="total_amount" widget="monetary"/>
+                                </group>
+                            </page>
+                            <page string="Payment" invisible="state == 'draft'">
+                                <group>
+                                    <field name="payment_ref"/>
+                                    <field name="payment_date"/>
+                                    <field name="note"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_salary_slip" model="ir.actions.act_window">
+            <field name="name">Salary Slips</field>
+            <field name="res_model">diamond.salary.slip</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Menus -->
+        <menuitem id="menu_diamond_labour_root" name="Labour &amp; Payroll"
+                  parent="menu_diamond_root" sequence="20"/>
+
+        <menuitem id="menu_diamond_labour_entry" name="Labour Entries"
+                  parent="menu_diamond_labour_root" action="action_diamond_labour_entry" sequence="10"/>
+
+        <menuitem id="menu_diamond_party_invoice" name="Party Invoices"
+                  parent="menu_diamond_labour_root" action="action_diamond_party_invoice" sequence="20"/>
+
+        <menuitem id="menu_diamond_salary_slip" name="Salary Slips"
+                  parent="menu_diamond_labour_root" action="action_diamond_salary_slip" sequence="30"/>
+
+    </data>
+</odoo>

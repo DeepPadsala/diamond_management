@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_color_list" model="ir.ui.view">
+            <field name="name">diamond.color.list</field>
+            <field name="model">diamond.color</field>
+            <field name="arch" type="xml">
+                <list string="Color Master" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="grade_value"/>
+                    <field name="is_fancy_color"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_diamond_color" model="ir.actions.act_window">
+            <field name="name">Colors</field>
+            <field name="res_model">diamond.color</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_diamond_color"
+                  name="Color"
+                  parent="menu_diamond_master_grades"
+                  action="action_diamond_color"
+                  sequence="20"/>
+
+    </data>
+</odoo>

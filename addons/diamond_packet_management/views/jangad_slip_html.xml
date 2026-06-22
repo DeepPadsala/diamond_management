@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!--
+            Jangad thermal slip — 80 mm receipt (RP3200 Plus).
+            Rendered as HTML for browser print (works via ngrok).
+        -->
+        <template id="tmpl_jangad_slip_print">
+            <t t-translation="off">
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Jangad</title>
+<style>
+@page {
+    size: 80mm auto;
+    margin: 2mm;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 80mm;
+    background: #fff;
+    font-family: "Courier New", Courier, monospace;
+}
+.slip {
+    width: 76mm;
+    margin: 0 auto;
+    padding: 2mm 0;
+    page-break-after: always;
+    page-break-inside: avoid;
+    font-size: 11px;
+}
+.slip:last-child {
+    page-break-after: avoid;
+}
+.slip-title {
+    border: 1px solid #000;
+    text-align: center;
+    font-weight: bold;
+    padding: 4px 2px;
+    margin-bottom: 6px;
+}
+.slip-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.slip-table td {
+    padding: 2px 0;
+    vertical-align: top;
+}
+.lbl { white-space: nowrap; width: 32%; }
+.col { width: 4%; }
+.val { width: 64%; }
+</style>
+</head>
+<body>
+<t t-foreach="slips" t-as="slip">
+<div class="slip">
+    <div class="slip-title">
+        <t t-esc="slip['title']"/>
+    </div>
+    <table class="slip-table">
+        <tr t-if="slip['show_employee']">
+            <td class="lbl">Emp Name</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['emp_name']"/></td>
+        </tr>
+        <tr t-if="slip['show_employee']">
+            <td class="lbl">Emp Code</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['emp_code']"/></td>
+        </tr>
+        <tr t-if="slip['show_party']">
+            <td class="lbl">Party</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['party_code']"/> <t t-esc="slip['party_name']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">PacketNo</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['packet_no']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">Issue Wt</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="'%.2f' % slip['issue_wt']"/></td>
+        </tr>
+        <tr t-if="slip['return_date']">
+            <td class="lbl">Return Wt</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="'%.2f' % slip['return_wt']"/></td>
+        </tr>
+        <tr t-if="slip['return_date']">
+            <td class="lbl">Loss Wt</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="'%.2f' % slip['loss_wt']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">Issue Date</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['issue_date']"/></td>
+        </tr>
+        <tr t-if="slip['return_date']">
+            <td class="lbl">Return Date</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['return_date']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">Process</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="slip['process']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">Rate</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="'%.2f' % slip['rate']"/></td>
+        </tr>
+        <tr>
+            <td class="lbl">Amount</td>
+            <td class="col">:</td>
+            <td class="val"><t t-esc="'%.2f' % slip['amount']"/></td>
+        </tr>
+    </table>
+</div>
+</t>
+<script>
+/* Self-initiated print — works via ngrok (parent iframe.print() is blocked). */
+(function () {
+    function triggerPrint() {
+        requestAnimationFrame(function () {
+            window.focus();
+            window.print();
+        });
+    }
+    if (document.readyState === "complete") {
+        triggerPrint();
+    } else {
+        window.addEventListener("load", triggerPrint, { once: true });
+    }
+})();
+</script>
+</body>
+</html>
+            </t>
+        </template>
+
+    </data>
+</odoo>

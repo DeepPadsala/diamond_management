@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Drop old inherited view record, then recreate as standalone list. -->
+        <delete model="ir.ui.view" id="view_diamond_live_stock_list"/>
+
+        <!-- Live Stock list with barcode scan field in the control panel. -->
+        <record id="view_diamond_live_stock_list" model="ir.ui.view">
+            <field name="name">diamond.packet.live.stock.list</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <list string="Live Stock" js_class="diamond_live_stock_list"
+                      decoration-info="state == 'in_stock'"
+                      decoration-success="state in ('in_process', 'in_factory', 'in_jobwork', 'in_hpht')"
+                      decoration-danger="days_in_stock &gt; 10">
+                    <field name="packet_no" string="Sequence"/>
+                    <field name="barcode"/>
+                    <field name="user_packet_no" string="Packet No."/>
+                    <field name="kapan_no"/>
+                    <field name="org_cts"/>
+                    <field name="expected_cts" string="Exp Cts"/>
+                    <field name="rdy_cts"/>
+                    <field name="current_employee_id"/>
+                    <field name="shape_id" string="Shape"/>
+                    <field name="color_id" string="Col"/>
+                    <field name="clarity_id" string="Clarity"/>
+                    <field name="state" string="Status"/>
+                    <field name="current_process_id" string="Process"/>
+                    <field name="inward_party_id" string="Party"/>
+                    <field name="inward_id" optional="hide"/>
+                    <field name="inward_date"/>
+                    <field name="create_date" string="Entry Date"/>
+                    <field name="days_in_stock" string="Days"/>
+                    <field name="current_holder_id" optional="show"/>
+                    <field name="current_location" optional="hide"/>
+                    <field name="org_pcs" optional="hide"/>
+                    <field name="rdy_pcs" optional="hide"/>
+                    <field name="cps" optional="hide"/>
+                    <field name="lab_id" optional="hide"/>
+                    <field name="rate_per_cts" optional="hide"/>
+                    <field name="amount" sum="Total Amount" optional="hide"/>
+                    <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Live Stock = packets that aren't outward / closed. -->
+        <record id="action_diamond_live_stock" model="ir.actions.act_window">
+            <field name="name">Live Stock</field>
+            <field name="res_model">diamond.packet</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="view_id" ref="view_diamond_live_stock_list"/>
+            <field name="search_view_id" ref="view_diamond_packet_search"/>
+            <field name="domain">[('state','not in',('outward','closed'))]</field>
+            <field name="context">{}</field>
+        </record>
+        <menuitem id="menu_diamond_live_stock" name="Live Stock" parent="menu_diamond_stock_root"
+                  action="action_diamond_live_stock" sequence="10"/>
+
+        <!-- Stock Tally — pivot grouped by Shape × Color × Clarity -->
+        <record id="view_diamond_packet_pivot" model="ir.ui.view">
+            <field name="name">diamond.packet.pivot</field>
+            <field name="model">diamond.packet</field>
+            <field name="arch" type="xml">
+                <pivot string="Stock Tally">
+                    <field name="shape_id" type="row"/>
+                    <field name="color_id" type="col"/>
+                    <field name="clarity_id" type="col"/>
+                    <field name="rdy_pcs" type="measure"/>
+                    <field name="rdy_cts" type="measure"/>
+                    <field name="amount" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+        <record id="action_diamond_stock_tally" model="ir.actions.act_window">
+            <field name="name">Stock Tally</field>
+            <field name="res_model">diamond.packet</field>
+            <field name="view_mode">pivot,list,form</field>
+            <field name="domain">[('state','not in',('outward','closed'))]</field>
+        </record>
+        <menuitem id="menu_diamond_stock_tally" name="Stock Tally" parent="menu_diamond_stock_root"
+                  action="action_diamond_stock_tally" sequence="20" active="False"/>
+
+        <!-- Manager Stock Tally — shows holder grouping -->
+        <record id="action_diamond_manager_stock_tally" model="ir.actions.act_window">
+            <field name="name">Manager Stock Tally</field>
+            <field name="res_model">diamond.packet</field>
+            <field name="view_mode">pivot,list,form</field>
+            <field name="domain">[('state','not in',('outward','closed'))]</field>
+            <field name="context">{'search_default_grp_holder':1, 'search_default_grp_loc':1}</field>
+        </record>
+        <menuitem id="menu_diamond_manager_stock_tally" name="Manager Stock Tally" parent="menu_diamond_stock_root"
+                  action="action_diamond_manager_stock_tally" sequence="30" active="False"/>
+
+        <!-- HPHT Pending -->
+        <record id="action_diamond_hpht_pending" model="ir.actions.act_window">
+            <field name="name">HPHT Pending</field>
+            <field name="res_model">diamond.packet</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('state','=','in_hpht')]</field>
+        </record>
+        <menuitem id="menu_diamond_hpht_pending" name="HPHT Pending" parent="menu_diamond_stock_root"
+                  action="action_diamond_hpht_pending" sequence="40" active="False"/>
+
+        <!-- Generic Packets menu (under transaction) -->
+        <menuitem id="menu_diamond_packet" name="All Packets" parent="menu_diamond_transaction_root"
+                  action="action_diamond_packet" sequence="5"/>
+
+    </data>
+</odoo>
