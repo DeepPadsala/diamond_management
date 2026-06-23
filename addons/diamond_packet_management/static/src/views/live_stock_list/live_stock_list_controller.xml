@@ -7,8 +7,6 @@
                 <!--
                     Barcode scan input — always visible, even when packets are selected.
                     layoutActions is forced to true in LiveStockListController.get display().
-                    Each scan selects the found packet and immediately re-focuses this input
-                    so the user can scan another barcode without touching the keyboard/mouse.
                 -->
                 <div class="o_diamond_live_stock_scan d-flex align-items-center gap-2 flex-grow-1">
                     <div class="input-group" style="width:240px;max-width:38vw;flex-shrink:0;">
@@ -26,6 +24,43 @@
                     <SearchBar toggler="searchBarToggler"/>
                 </div>
             </t>
+        </xpath>
+
+        <!-- Keep control panel clean: no inline buttons beside the search bar. -->
+        <xpath expr="//t[@t-set-slot='control-panel-selection-actions']" position="replace">
+            <t t-set-slot="control-panel-selection-actions"/>
+        </xpath>
+
+        <!-- Full-width action strip above the list when rows are selected. -->
+        <xpath expr="//t[@t-component='props.Renderer']" position="before">
+            <div t-if="hasSelectedRecords"
+                 class="o_diamond_live_stock_action_bar px-3 pt-2 pb-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                    <t t-call="web.ListView.Selection"/>
+                    <t t-if="props.info.actionMenus">
+                        <ActionMenus t-props="this.actionMenuProps"/>
+                    </t>
+                </div>
+                <div t-if="!env.isSmall" class="o_diamond_live_stock_action_buttons">
+                    <t t-foreach="liveStockActionButtonGroups" t-as="group" t-key="group_index">
+                        <div t-att-class="group.cssClass">
+                            <t t-foreach="group.buttons" t-as="button" t-key="button.id">
+                                <MultiRecordViewButton
+                                    list="model.root"
+                                    className="button.className"
+                                    clickParams="button.clickParams"
+                                    defaultRank="'btn-secondary'"
+                                    domain="props.domain"
+                                    icon="button.icon"
+                                    string="button.string"
+                                    title="button.title"
+                                    attrs="button.attrs"
+                                />
+                            </t>
+                        </div>
+                    </t>
+                </div>
+            </div>
         </xpath>
     </t>
 

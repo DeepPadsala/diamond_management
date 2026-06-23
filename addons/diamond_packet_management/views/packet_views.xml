@@ -104,6 +104,7 @@
                                 <field name="pending_factory_employee_id" readonly="1"/>
                                 <field name="pending_factory_process_id" readonly="1"/>
                                 <field name="pending_factory_issue_cts" readonly="1"/>
+                                <field name="pending_factory_labour_weight_cts" readonly="1"/>
                             </group>
                             <group string="Documents">
                                 <field name="inward_id" readonly="1"/>

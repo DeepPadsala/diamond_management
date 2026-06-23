@@ -21,11 +21,12 @@ class DiamondWorkerLabour(models.Model):
     to_cts = fields.Float(string="To Weight", digits=(8, 4), required=True)
     rate = fields.Float(string="Rate", digits=(12, 2), required=True)
     multiply_by = fields.Boolean(string="Multiply By", default=True,
-                                 help="When checked, rate is multiplied by quantity or weight loss.")
+                                 help="When checked, rate is multiplied by receive cts or weight loss.")
     multiply_by_weight_loss = fields.Boolean(
         string="Weight Loss",
-        help="When checked with Multiply By, amount = Rate × Weight Loss. "
-             "Otherwise amount = Rate × Quantity (pcs).",
+        help="When checked with Multiply By, amount = Rate × (Issue Cts − Receive Cts). "
+             "Otherwise amount = Rate × Issue Cts. "
+             "Rate bracket is always found using Receive Cts.",
     )
     note = fields.Text(string="Note")
     active = fields.Boolean(string="Active", default=True)

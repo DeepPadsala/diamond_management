@@ -19,6 +19,26 @@ class DiamondFactoryIssue(models.Model):
                 vals["name"] = self.env["ir.sequence"].with_company(company).next_by_code("diamond.factory.issue") or _("New")
         return super().create(vals_list)
 
+    def _is_resuming_pending(self, packet, employee, process):
+        return (
+            packet.pending_factory_process_id == process
+            and packet.pending_factory_employee_id == employee
+            and (
+                packet.pending_factory_labour_weight_cts
+                or packet.pending_factory_issue_cts
+            )
+        )
+
+    def _resolve_labour_weight(self, packet, employee, process, issue_cts):
+        """Labour weight for rate lookup — kept from pending cycle when resuming."""
+        if self._is_resuming_pending(packet, employee, process):
+            return (
+                packet.pending_factory_labour_weight_cts
+                or packet.pending_factory_issue_cts
+                or issue_cts
+            )
+        return issue_cts
+
     def action_confirm(self):
         for rec in self:
             if not rec.employee_id:
@@ -26,12 +46,19 @@ class DiamondFactoryIssue(models.Model):
             for line in rec.line_ids:
                 packet = line.packet_id
                 issue_cts = line.cts or packet.rdy_cts or 0.0
-                line.issue_cts = issue_cts
+                labour_weight = self._resolve_labour_weight(
+                    packet, rec.employee_id, rec.process_id, issue_cts,
+                )
+                line.write({
+                    "issue_cts": issue_cts,
+                    "labour_weight_cts": labour_weight,
+                })
                 packet.write({
                     "state": "in_factory",
                     "current_location": "factory",
                     "current_employee_id": rec.employee_id.id,
                     "current_process_id": rec.process_id.id,
+                    "current_factory_labour_weight_cts": labour_weight,
                 })
                 packet._log_history(
                     action="factory_issue",
@@ -58,8 +85,14 @@ class DiamondFactoryIssueLine(models.Model):
 
     doc_id = fields.Many2one("diamond.factory.issue", string="Document", required=True, ondelete="cascade")
     company_id = fields.Many2one(related="doc_id.company_id", store=True, index=True)
-    issue_cts = fields.Float(string="Issue Weight", digits=(12, 4), readonly=True,
-                             help="Packet weight when issued to the worker.")
+    issue_cts = fields.Float(
+        string="Issue Weight", digits=(12, 4), readonly=True,
+        help="Packet weight when issued to the worker.",
+    )
+    labour_weight_cts = fields.Float(
+        string="Labour Weight", digits=(12, 4), readonly=True,
+        help="Weight used for labour rate lookup (kept from process start when resuming).",
+    )
 
 
 # ─────────── Factory Receive (F6) ───────────
@@ -87,21 +120,30 @@ class DiamondFactoryReceive(models.Model):
         loss = line.loss_cts or 0.0
         return received + loss if (received or loss) else (line.packet_id.rdy_cts or 0.0)
 
+    def _segment_labour_weight(self, packet, segment_issue_cts):
+        """Labour weight for this receive segment."""
+        return packet.current_factory_labour_weight_cts or segment_issue_cts
+
     def _is_resuming_pending(self, packet, employee, process):
         return (
-            packet.pending_factory_issue_cts
+            packet.pending_factory_process_id == process
             and packet.pending_factory_employee_id == employee
-            and packet.pending_factory_process_id == process
+            and (
+                packet.pending_factory_labour_weight_cts
+                or packet.pending_factory_issue_cts
+            )
         )
 
     def _apply_factory_receive_line(self, rec, line):
         packet = line.packet_id
         segment_issue_cts = self._segment_issue_cts(line)
+        segment_labour_weight = self._segment_labour_weight(packet, segment_issue_cts)
 
         if line.unprocessed:
             line.write({
                 "issue_cts": segment_issue_cts,
                 "session_issue_cts": segment_issue_cts,
+                "labour_weight_cts": segment_labour_weight,
                 "labour_loss_cts": 0.0,
             })
             packet.write({
@@ -112,6 +154,8 @@ class DiamondFactoryReceive(models.Model):
                 "pending_factory_employee_id": rec.employee_id.id,
                 "pending_factory_process_id": rec.process_id.id,
                 "pending_factory_issue_cts": segment_issue_cts,
+                "pending_factory_labour_weight_cts": segment_labour_weight,
+                "current_factory_labour_weight_cts": 0.0,
                 "current_employee_id": False,
                 "current_process_id": False,
             })
@@ -119,15 +163,24 @@ class DiamondFactoryReceive(models.Model):
         else:
             resuming = self._is_resuming_pending(packet, rec.employee_id, rec.process_id)
             if resuming:
-                session_issue_cts = packet.pending_factory_issue_cts
-                labour_loss_cts = max(session_issue_cts - (line.cts or 0.0), 0.0)
+                labour_weight = (
+                    packet.pending_factory_labour_weight_cts
+                    or packet.pending_factory_issue_cts
+                    or segment_issue_cts
+                )
+                session_issue_cts = packet.pending_factory_issue_cts or segment_issue_cts
+                labour_loss_cts = max(labour_weight - (line.cts or 0.0), 0.0)
             else:
+                labour_weight = segment_labour_weight
                 session_issue_cts = segment_issue_cts
-                labour_loss_cts = line.loss_cts if line.loss_cts else max(segment_issue_cts - (line.cts or 0.0), 0.0)
+                labour_loss_cts = line.loss_cts if line.loss_cts else max(
+                    segment_issue_cts - (line.cts or 0.0), 0.0,
+                )
 
             line.write({
                 "issue_cts": segment_issue_cts,
                 "session_issue_cts": session_issue_cts,
+                "labour_weight_cts": labour_weight,
                 "labour_loss_cts": labour_loss_cts,
             })
             packet.write({
@@ -137,9 +190,11 @@ class DiamondFactoryReceive(models.Model):
                 "rdy_cts": line.cts or packet.rdy_cts,
                 "current_employee_id": False,
                 "current_process_id": False,
+                "current_factory_labour_weight_cts": 0.0,
                 "pending_factory_employee_id": False,
                 "pending_factory_process_id": False,
                 "pending_factory_issue_cts": 0.0,
+                "pending_factory_labour_weight_cts": 0.0,
             })
             note = _("Factory Receive %s") % rec.name
 
@@ -190,9 +245,14 @@ class DiamondFactoryReceiveLine(models.Model):
         help="Check when the worker has not finished this process. "
              "The packet returns to stock and can be issued to another worker. "
              "Salary for this process is calculated on final completion using "
-             "the full weight loss from the original issue weight.",
+             "the original labour weight from when the process first started.",
     )
     issue_cts = fields.Float(string="Segment Issue Weight", digits=(12, 4), readonly=True)
+    labour_weight_cts = fields.Float(
+        string="Labour Weight", digits=(12, 4), readonly=True,
+        help="Weight used for labour rate lookup. For a resumed process this is the "
+             "original weight from the first issue (e.g. 4.5), not the segment issue.",
+    )
     session_issue_cts = fields.Float(
         string="Process Start Weight", digits=(12, 4), readonly=True,
         help="Original issue weight for this process cycle (used for cumulative labour).",
@@ -200,7 +260,7 @@ class DiamondFactoryReceiveLine(models.Model):
     loss_cts = fields.Float(string="Segment Loss (cts)", digits=(12, 4))
     labour_loss_cts = fields.Float(
         string="Labour Loss (cts)", digits=(12, 4), readonly=True,
-        help="Weight loss used for salary/invoice (cumulative when resuming a pending process).",
+        help="Weight loss used for salary/invoice (labour weight − receive when resuming).",
     )
     party_labour_amount = fields.Float(string="Party Labour", digits=(14, 2), readonly=True)
     worker_labour_amount = fields.Float(string="Worker Labour", digits=(14, 2), readonly=True)

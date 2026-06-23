@@ -1,0 +1,31 @@
+.o_diamond_live_stock_list {
+    .o_diamond_live_stock_action_bar {
+        background-color: var(--o-view-background-color, #f8f9fa);
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+
+        .o_diamond_live_stock_action_buttons {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 0.75rem;
+
+            .o_diamond_action_group {
+                display: inline-flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.35rem;
+                padding-right: 0.75rem;
+                border-right: 1px solid var(--border-color, #dee2e6);
+
+                &:last-child {
+                    border-right: none;
+                    padding-right: 0;
+                }
+            }
+
+            .o_diamond_action_group_primary {
+                padding-right: 0.75rem;
+            }
+        }
+    }
+}

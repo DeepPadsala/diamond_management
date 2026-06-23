@@ -34,6 +34,10 @@ class DiamondLabourEntry(models.Model):
     loss_cts = fields.Float(string="Loss Cts", digits=(12, 4))
     weight_cts = fields.Float(string="Bracket Weight", digits=(12, 4),
                               help="Weight used to find the rate bracket.")
+    labour_weight_cts = fields.Float(
+        string="Labour Weight", digits=(12, 4),
+        help="Original labour weight for resumed factory processes.",
+    )
 
     party_labour_id = fields.Many2one("diamond.party.labour", string="Party Rate Card", ondelete="set null")
     worker_labour_id = fields.Many2one("diamond.worker.labour", string="Worker Rate Card", ondelete="set null")
@@ -41,7 +45,13 @@ class DiamondLabourEntry(models.Model):
     multiply_by = fields.Boolean(string="Multiply By")
     multiply_by_weight_loss = fields.Boolean(string="Weight Loss")
     quantity_basis = fields.Selection(
-        [("quantity", "Quantity"), ("weight_loss", "Weight Loss"), ("flat", "Flat")],
+        [
+            ("quantity", "Quantity"),
+            ("issue_cts", "Issue Cts"),
+            ("receive_cts", "Receive Cts"),
+            ("weight_loss", "Weight Loss"),
+            ("flat", "Flat"),
+        ],
         string="Basis",
     )
     amount = fields.Float(string="Amount", digits=(14, 2), required=True)

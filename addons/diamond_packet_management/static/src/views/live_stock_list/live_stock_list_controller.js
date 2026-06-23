@@ -55,6 +55,61 @@ export class LiveStockListController extends ListController {
         return `${base} o_diamond_live_stock_list`.trim();
     }
 
+    /**
+     * Group header buttons as Issue | Receive pairs for the action bar.
+     */
+    get liveStockActionButtonGroups() {
+        const buttons = (this.archInfo.headerButtons || []).filter(
+            (button) => button.display !== "always" && !this.evalViewModifier(button.invisible)
+        );
+        const findButton = (predicate) => buttons.find((button) => predicate(button));
+
+        const groups = [
+            {
+                cssClass: "o_diamond_action_group o_diamond_action_group_primary",
+                buttons: [
+                    findButton((b) => (b.string || "").includes("Issue Packet")),
+                    findButton((b) => (b.string || "").includes("Receive Packet")),
+                    findButton((b) => b.clickParams?.name === "action_open_issue_correction"),
+                ],
+            },
+            {
+                cssClass: "o_diamond_action_group",
+                buttons: [
+                    findButton((b) => b.clickParams?.name === "action_issue_process"),
+                    findButton((b) => b.clickParams?.name === "action_receive_process"),
+                ],
+            },
+            {
+                cssClass: "o_diamond_action_group",
+                buttons: [
+                    findButton((b) => b.clickParams?.name === "action_issue_factory"),
+                    findButton((b) => b.clickParams?.name === "action_receive_factory"),
+                ],
+            },
+            {
+                cssClass: "o_diamond_action_group",
+                buttons: [
+                    findButton((b) => b.clickParams?.name === "action_issue_jobwork"),
+                    findButton((b) => b.clickParams?.name === "action_receive_jobwork"),
+                ],
+            },
+            {
+                cssClass: "o_diamond_action_group",
+                buttons: [
+                    findButton((b) => b.clickParams?.name === "action_issue_hpht"),
+                    findButton((b) => b.clickParams?.name === "action_receive_hpht"),
+                ],
+            },
+        ];
+        return groups
+            .map((group) => ({
+                ...group,
+                buttons: group.buttons.filter(Boolean),
+            }))
+            .filter((group) => group.buttons.length);
+    }
+
     onBarcodeKeydown(ev) {
         if (ev.key !== "Enter") {
             return;

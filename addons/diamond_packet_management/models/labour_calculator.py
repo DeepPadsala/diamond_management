@@ -46,11 +46,12 @@ class DiamondLabourCalculator(models.AbstractModel):
                 return rate
         return self.env["diamond.worker.labour"]
 
-    def _compute_labour_amount(self, rate_record, pcs, loss_cts):
+    def _compute_labour_amount(self, rate_record, issue_cts, loss_cts):
         """Calculate labour amount from rate card flags.
 
-        - multiply_by + multiply_by_weight_loss: rate * weight loss
-        - multiply_by without weight loss: rate * quantity (pcs)
+        Rate bracket uses receive weight (regular) or labour weight (resumed factory).
+        - multiply_by + multiply_by_weight_loss: rate × weight loss
+        - multiply_by without weight loss: rate × issue / labour weight
         - otherwise: flat rate
         """
         if not rate_record or not rate_record.rate:
@@ -58,7 +59,7 @@ class DiamondLabourCalculator(models.AbstractModel):
         if rate_record.multiply_by:
             if rate_record.multiply_by_weight_loss:
                 return rate_record.rate * max(loss_cts or 0.0, 0.0)
-            return rate_record.rate * max(pcs or 0, 0)
+            return rate_record.rate * max(issue_cts or 0.0, 0.0)
         return rate_record.rate
 
     def _get_packet_owner_party(self, packet):
@@ -67,8 +68,20 @@ class DiamondLabourCalculator(models.AbstractModel):
             return packet.inward_id.ledger_id
         return packet.current_holder_id
 
+    def _labour_weight_cts(self, line):
+        """Stored labour weight for factory resume cycles."""
+        return getattr(line, "labour_weight_cts", None) or 0.0
+
+    def _uses_stored_labour_weight(self, line):
+        """True when labour uses the original process weight (resumed factory job)."""
+        labour_weight = self._labour_weight_cts(line)
+        segment_issue = getattr(line, "issue_cts", None) or 0.0
+        return labour_weight > 0 and abs(labour_weight - segment_issue) > 0.0001
+
     def _issued_weight_cts(self, line):
-        """Weight used for rate bracket lookup (issued weight before receive)."""
+        """Issued weight before receive (used as multiply factor for regular receives)."""
+        if self._uses_stored_labour_weight(line):
+            return self._labour_weight_cts(line)
         if getattr(line, "session_issue_cts", None):
             return line.session_issue_cts
         if getattr(line, "issue_cts", None):
@@ -77,10 +90,22 @@ class DiamondLabourCalculator(models.AbstractModel):
         loss = line.loss_cts or 0.0
         return received + loss if (received or loss) else (line.packet_id.rdy_cts or 0.0)
 
+    def _receive_weight_cts(self, line):
+        """Receive weight used to find the labour rate bracket (regular receives only)."""
+        return line.cts or 0.0
+
+    def _labour_bracket_weight(self, line):
+        """Weight bracket for rate card lookup."""
+        if self._uses_stored_labour_weight(line):
+            return self._labour_weight_cts(line)
+        return self._receive_weight_cts(line)
+
     def _effective_loss_cts(self, line):
         """Loss used for labour amount (cumulative for resumed factory processes)."""
         if getattr(line, "unprocessed", False):
             return 0.0
+        if self._uses_stored_labour_weight(line):
+            return max(self._labour_weight_cts(line) - (line.cts or 0.0), 0.0)
         if getattr(line, "labour_loss_cts", None) is not None:
             return line.labour_loss_cts
         return line.loss_cts or 0.0
@@ -93,17 +118,20 @@ class DiamondLabourCalculator(models.AbstractModel):
         if not party or not process:
             return False
 
-        weight_cts = self._issued_weight_cts(line)
-        rate = self._find_party_labour_rate(party, process, weight_cts, receive_doc.company_id)
+        bracket_weight = self._labour_bracket_weight(line)
+        issue_cts = self._issued_weight_cts(line)
+        rate = self._find_party_labour_rate(party, process, bracket_weight, receive_doc.company_id)
         if not rate:
             return False
 
         labour_loss = self._effective_loss_cts(line)
-        amount = self._compute_labour_amount(rate, line.pcs, labour_loss)
+        amount = self._compute_labour_amount(rate, issue_cts, labour_loss)
         if not amount:
             return False
 
-        qty_basis = "weight_loss" if rate.multiply_by_weight_loss else "quantity"
+        qty_basis = "weight_loss" if rate.multiply_by_weight_loss else (
+            "issue_cts" if rate.multiply_by else "flat"
+        )
         return {
             "entry_type": "party",
             "company_id": receive_doc.company_id.id,
@@ -117,7 +145,8 @@ class DiamondLabourCalculator(models.AbstractModel):
             "pcs": line.pcs,
             "cts": line.cts,
             "loss_cts": labour_loss,
-            "weight_cts": weight_cts,
+            "weight_cts": bracket_weight,
+            "labour_weight_cts": self._labour_weight_cts(line) or issue_cts,
             "rate": rate.rate,
             "multiply_by": rate.multiply_by,
             "multiply_by_weight_loss": rate.multiply_by_weight_loss,
@@ -133,17 +162,20 @@ class DiamondLabourCalculator(models.AbstractModel):
         if not employee or not process:
             return False
 
-        weight_cts = self._issued_weight_cts(line)
-        rate = self._find_worker_labour_rate(process, weight_cts, receive_doc.company_id)
+        bracket_weight = self._labour_bracket_weight(line)
+        issue_cts = self._issued_weight_cts(line)
+        rate = self._find_worker_labour_rate(process, bracket_weight, receive_doc.company_id)
         if not rate:
             return False
 
         labour_loss = self._effective_loss_cts(line)
-        amount = self._compute_labour_amount(rate, line.pcs, labour_loss)
+        amount = self._compute_labour_amount(rate, issue_cts, labour_loss)
         if not amount:
             return False
 
-        qty_basis = "weight_loss" if rate.multiply_by_weight_loss else "quantity"
+        qty_basis = "weight_loss" if rate.multiply_by_weight_loss else (
+            "issue_cts" if rate.multiply_by else "flat"
+        )
         return {
             "entry_type": "worker",
             "company_id": receive_doc.company_id.id,
@@ -157,7 +189,8 @@ class DiamondLabourCalculator(models.AbstractModel):
             "pcs": line.pcs,
             "cts": line.cts,
             "loss_cts": labour_loss,
-            "weight_cts": weight_cts,
+            "weight_cts": bracket_weight,
+            "labour_weight_cts": self._labour_weight_cts(line) or issue_cts,
             "rate": rate.rate,
             "multiply_by": rate.multiply_by,
             "multiply_by_weight_loss": rate.multiply_by_weight_loss,

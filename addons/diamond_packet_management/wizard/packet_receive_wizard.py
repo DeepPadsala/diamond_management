@@ -242,6 +242,10 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
     allow_weight_gain = fields.Boolean(string="Allow Gain")
     new_color_id = fields.Many2one("diamond.color", string="New Color (HPHT)")
     labour_amount = fields.Float(string="Jobwork Labour", digits=(14, 2))
+    labour_weight_cts = fields.Float(
+        string="Labour Weight", digits=(12, 4),
+        compute="_compute_labour_weight_preview",
+    )
     unprocessed = fields.Boolean(
         string="Un-Processed",
         help="Process not finished — packet returns to stock without salary. "
@@ -258,8 +262,41 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
             rec.loss_pct = (rec.loss_cts / rec.old_cts * 100.0) if rec.old_cts else 0.0
 
     @api.depends(
+        "wizard_id.mode", "wizard_id.employee_id", "wizard_id.process_id",
+        "packet_id", "old_cts",
+        "packet_id.pending_factory_labour_weight_cts",
+        "packet_id.pending_factory_issue_cts",
+        "packet_id.current_factory_labour_weight_cts",
+    )
+    def _compute_labour_weight_preview(self):
+        for rec in self:
+            rec.labour_weight_cts = 0.0
+            wizard = rec.wizard_id
+            packet = rec.packet_id
+            if not wizard or wizard.mode != "factory" or not packet:
+                continue
+            segment_issue = rec.old_cts or 0.0
+            resuming = (
+                packet.pending_factory_employee_id == wizard.employee_id
+                and packet.pending_factory_process_id == wizard.process_id
+                and (
+                    packet.pending_factory_labour_weight_cts
+                    or packet.pending_factory_issue_cts
+                )
+            )
+            if resuming:
+                rec.labour_weight_cts = (
+                    packet.pending_factory_labour_weight_cts
+                    or packet.pending_factory_issue_cts
+                    or segment_issue
+                )
+            else:
+                rec.labour_weight_cts = packet.current_factory_labour_weight_cts or segment_issue
+
+    @api.depends(
         "wizard_id.process_id", "wizard_id.mode", "wizard_id.company_id",
         "wizard_id.employee_id", "packet_id", "new_pcs", "new_cts", "loss_cts", "unprocessed",
+        "labour_weight_cts",
     )
     def _compute_labour_preview(self):
         calc = self.env["diamond.labour.calculator"]
@@ -276,14 +313,23 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
             segment_issue = rec.old_cts or 0.0
             resuming = (
                 wizard.mode == "factory"
-                and packet.pending_factory_issue_cts
                 and packet.pending_factory_employee_id == wizard.employee_id
                 and packet.pending_factory_process_id == wizard.process_id
+                and (
+                    packet.pending_factory_labour_weight_cts
+                    or packet.pending_factory_issue_cts
+                )
             )
             if resuming:
-                session_issue = packet.pending_factory_issue_cts
-                labour_loss = max(session_issue - (rec.new_cts or 0.0), 0.0)
+                labour_weight = (
+                    packet.pending_factory_labour_weight_cts
+                    or packet.pending_factory_issue_cts
+                    or segment_issue
+                )
+                session_issue = packet.pending_factory_issue_cts or segment_issue
+                labour_loss = max(labour_weight - (rec.new_cts or 0.0), 0.0)
             else:
+                labour_weight = packet.current_factory_labour_weight_cts or segment_issue
                 session_issue = segment_issue
                 labour_loss = rec.loss_cts or max(segment_issue - (rec.new_cts or 0.0), 0.0)
 
@@ -295,6 +341,7 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
                     "loss_cts": rec.loss_cts,
                     "issue_cts": segment_issue,
                     "session_issue_cts": session_issue,
+                    "labour_weight_cts": labour_weight,
                     "labour_loss_cts": labour_loss,
                     "unprocessed": False,
                 })

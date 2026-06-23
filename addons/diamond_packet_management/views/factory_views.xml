@@ -32,7 +32,9 @@
                                 <field name="packet_id"/>
                                 <field name="barcode" readonly="1"/>
                                 <field name="pcs"/>
-                                <field name="cts"/>
+                                <field name="cts" string="Issue Weight"/>
+                                <field name="issue_cts" readonly="1" optional="show"/>
+                                <field name="labour_weight_cts" readonly="1" optional="show"/>
                                 <field name="note"/>
                             </list>
                         </field>
@@ -88,6 +90,7 @@
                                 <field name="pcs"/>
                                 <field name="cts"/>
                                 <field name="issue_cts" readonly="1" optional="show"/>
+                                <field name="labour_weight_cts" readonly="1" optional="show"/>
                                 <field name="loss_cts"/>
                                 <field name="unprocessed"/>
                                 <field name="session_issue_cts" readonly="1" optional="hide"/>

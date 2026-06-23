@@ -14,6 +14,21 @@
                       decoration-info="state == 'in_stock'"
                       decoration-success="state in ('in_process', 'in_factory', 'in_jobwork', 'in_hpht')"
                       decoration-danger="days_in_stock &gt; 10">
+                    <header>
+                        <button name="%(diamond_packet_management.action_diamond_packet_issue_wizard)d"
+                                type="action" string="Issue Packet(s)" class="btn-primary"/>
+                        <button name="%(diamond_packet_management.action_diamond_packet_receive_wizard)d"
+                                type="action" string="Receive Packet(s)" class="btn-primary"/>
+                        <button name="action_issue_process" type="object" string="Process Issue"/>
+                        <button name="action_issue_factory" type="object" string="Factory Issue"/>
+                        <button name="action_issue_jobwork" type="object" string="Jobwork Issue"/>
+                        <button name="action_issue_hpht" type="object" string="HPHT Issue"/>
+                        <button name="action_receive_process" type="object" string="Process Receive"/>
+                        <button name="action_receive_factory" type="object" string="Factory Receive"/>
+                        <button name="action_receive_jobwork" type="object" string="Jobwork Receive"/>
+                        <button name="action_receive_hpht" type="object" string="HPHT Receive"/>
+                        <button name="action_open_issue_correction" type="object" string="Correct Issue"/>
+                    </header>
                     <field name="packet_no" string="Sequence"/>
                     <field name="barcode"/>
                     <field name="user_packet_no" string="Packet No."/>
