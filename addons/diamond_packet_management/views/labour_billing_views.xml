@@ -102,6 +102,9 @@
                                 class="btn-primary" invisible="state != 'confirmed'"/>
                         <button name="action_cancel" string="Cancel" type="object"
                                 invisible="state in ('paid', 'cancelled')"/>
+                        <button name="action_reopen_draft" string="Reopen Draft" type="object"
+                                invisible="state != 'confirmed'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
                         <button name="action_draft" string="Reset to Draft" type="object"
                                 invisible="state != 'cancelled'"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,paid"/>
@@ -171,7 +174,9 @@
                     <field name="period_month"/>
                     <field name="period_year"/>
                     <field name="total_pcs"/>
-                    <field name="total_amount" sum="Total"/>
+                    <field name="gross_amount" optional="show"/>
+                    <field name="withdrawal_deduction" optional="show"/>
+                    <field name="net_payable_amount" string="Net Payable" sum="Net Total"/>
                     <field name="state" widget="badge"
                            decoration-info="state == 'draft'"
                            decoration-success="state == 'paid'"
@@ -189,6 +194,12 @@
                     <header>
                         <button name="action_confirm" string="Confirm" type="object"
                                 class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_apply_withdrawals" string="Apply Withdrawals" type="object"
+                                class="btn-secondary" invisible="state != 'draft'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
+                        <button name="action_reopen_draft" string="Reopen for Withdrawals" type="object"
+                                class="btn-secondary" invisible="state != 'confirmed'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
                         <button name="action_mark_paid" string="Mark Paid" type="object"
                                 class="btn-primary" invisible="state != 'confirmed'"/>
                         <button name="action_cancel" string="Cancel" type="object"
@@ -210,10 +221,12 @@
                                 <field name="period_month" readonly="state != 'draft'"/>
                                 <field name="period_year" readonly="state != 'draft'"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="advance_carried_forward" readonly="1"
+                                       invisible="advance_carried_forward == 0"/>
                             </group>
                         </group>
                         <notebook>
-                            <page string="Lines">
+                            <page string="Labour Lines">
                                 <field name="line_ids" readonly="state != 'draft'">
                                     <list editable="bottom">
                                         <field name="date"/>
@@ -224,11 +237,22 @@
                                         <field name="cts"/>
                                         <field name="loss_cts"/>
                                         <field name="rate"/>
-                                        <field name="amount" sum="Total"/>
+                                        <field name="amount" sum="Gross"/>
                                     </list>
                                 </field>
-                                <group class="oe_subtotal_footer">
-                                    <field name="total_amount" widget="monetary"/>
+                            </page>
+                            <page string="Withdrawals">
+                                <field name="withdrawal_line_ids" readonly="1">
+                                    <list>
+                                        <field name="withdrawal_name"/>
+                                        <field name="withdrawal_date"/>
+                                        <field name="amount" sum="Deducted"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right">
+                                    <field name="gross_amount" readonly="1"/>
+                                    <field name="withdrawal_deduction" readonly="1"/>
+                                    <field name="net_payable_amount" readonly="1" class="oe_subtotal_footer_separator"/>
                                 </group>
                             </page>
                             <page string="Payment" invisible="state == 'draft'">

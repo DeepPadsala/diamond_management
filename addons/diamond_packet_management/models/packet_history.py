@@ -30,6 +30,7 @@ class DiamondPacketHistory(models.Model):
             ("factory_receive", "Factory Receive"),
             ("hpht_issue", "HPHT Issue"),
             ("hpht_receive", "HPHT Receive"),
+            ("rollback", "Rollback"),
             ("note", "Note"),
         ],
         string="Action",

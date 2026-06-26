@@ -55,6 +55,10 @@ class DiamondPacketIssueWizard(models.TransientModel):
         "diamond.employee", string="Employee",
         help="For Factory: required. For other modes: optional.",
     )
+    employee_domain = fields.Char(
+        compute="_compute_employee_domain",
+        help="Internal — drives employee domain in the view.",
+    )
     expected_return_date = fields.Date(string="Expected Return")
     note = fields.Text(string="Note")
 
@@ -86,6 +90,15 @@ class DiamondPacketIssueWizard(models.TransientModel):
             else:
                 rec.ledger_domain = "[]"
 
+    @api.depends("process_id")
+    def _compute_employee_domain(self):
+        Employee = self.env["diamond.employee"]
+        for rec in self:
+            if rec.process_id:
+                rec.employee_domain = str(Employee.domain_for_process(rec.process_id))
+            else:
+                rec.employee_domain = "[]"
+
     @api.depends("mode")
     def _compute_flags(self):
         for rec in self:
@@ -114,6 +127,14 @@ class DiamondPacketIssueWizard(models.TransientModel):
         else:
             self.ledger_id = False
             self.expected_return_date = False
+
+    @api.onchange("process_id")
+    def _onchange_process_id(self):
+        if self.employee_id and self.process_id:
+            if not self.env["diamond.employee"].check_capable_for_process(
+                self.employee_id, self.process_id,
+            ):
+                self.employee_id = False
 
     @api.model
     def default_get(self, fields_list):
@@ -152,6 +173,15 @@ class DiamondPacketIssueWizard(models.TransientModel):
             raise UserError(_("Pick the Employee for a Factory Issue."))
         if not self.process_id:
             raise UserError(_("Pick a Process."))
+        if self.employee_id and not self.env["diamond.employee"].check_capable_for_process(
+            self.employee_id, self.process_id,
+        ):
+            raise UserError(_(
+                "Employee %(employee)s is not assigned to process %(process)s."
+            ) % {
+                "employee": self.employee_id.display_name,
+                "process": self.process_id.display_name,
+            })
         if self.mode == "jobwork" and self.ledger_id and self.ledger_id.party_type != "jobworker":
             raise UserError(_("Selected party is not flagged as a Jobworker."))
         if self.mode == "hpht" and self.ledger_id and self.ledger_id.party_type != "hpht_vendor":

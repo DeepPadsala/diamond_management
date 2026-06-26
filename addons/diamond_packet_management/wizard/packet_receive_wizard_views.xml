@@ -20,9 +20,12 @@
                                 <field name="company_id" groups="base.group_multi_company"/>
                             </group>
                             <group string="Source">
+                                <field name="employee_domain" invisible="1"/>
                                 <field name="process_id" options="{'no_create_edit': True}"/>
                                 <field name="ledger_id" options="{'no_create_edit': True}"/>
-                                <field name="employee_id" options="{'no_create_edit': True}"/>
+                                <field name="employee_id"
+                                       domain="employee_domain"
+                                       options="{'no_create_edit': True}"/>
                             </group>
                         </group>
 

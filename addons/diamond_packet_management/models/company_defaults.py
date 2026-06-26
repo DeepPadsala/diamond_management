@@ -114,6 +114,7 @@ _SEQUENCE_DEFAULTS = (
     ("diamond.hpht.receive", "Diamond HPHT Receive", "HR/%(year)s/", 5),
     ("diamond.party.invoice", "Party Labour Invoice", "PINV/%(year)s/", 5),
     ("diamond.salary.slip", "Worker Salary Slip", "SAL/%(year)s/", 5),
+    ("diamond.employee.withdrawal", "Employee Withdrawal", "WD/%(year)s/", 5),
 )
 
 

@@ -20,7 +20,8 @@
                             <group>
                                 <field name="date"/>
                                 <field name="process_id"/>
-                                <field name="employee_id"/>
+                                <field name="employee_id"
+                                       domain="['|', ('process_ids', '=', False), ('process_ids', 'in', process_id)]"/>
                             </group>
                             <group>
                                 <field name="ledger_id"/>
@@ -76,7 +77,8 @@
                             <group>
                                 <field name="date"/>
                                 <field name="process_id"/>
-                                <field name="employee_id"/>
+                                <field name="employee_id"
+                                       domain="['|', ('process_ids', '=', False), ('process_ids', 'in', process_id)]"/>
                             </group>
                             <group>
                                 <field name="ledger_id"/>

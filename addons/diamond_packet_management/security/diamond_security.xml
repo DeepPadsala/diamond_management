@@ -298,5 +298,17 @@
             <field name="domain_force">[('company_id','in',company_ids)]</field>
         </record>
 
+        <record id="rule_diamond_employee_withdrawal_company" model="ir.rule">
+            <field name="name">Employee Withdrawal: multi-company</field>
+            <field name="model_id" ref="model_diamond_employee_withdrawal"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+        </record>
+
+        <record id="rule_diamond_salary_slip_withdrawal_line_company" model="ir.rule">
+            <field name="name">Salary Slip Withdrawal Line: multi-company</field>
+            <field name="model_id" ref="model_diamond_salary_slip_withdrawal_line"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+        </record>
+
     </data>
 </odoo>

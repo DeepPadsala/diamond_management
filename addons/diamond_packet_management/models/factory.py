@@ -43,6 +43,15 @@ class DiamondFactoryIssue(models.Model):
         for rec in self:
             if not rec.employee_id:
                 raise UserError(_("Select an employee for factory issue."))
+            if not self.env["diamond.employee"].check_capable_for_process(
+                rec.employee_id, rec.process_id,
+            ):
+                raise UserError(_(
+                    "Employee %(employee)s is not assigned to process %(process)s."
+                ) % {
+                    "employee": rec.employee_id.display_name,
+                    "process": rec.process_id.display_name,
+                })
             for line in rec.line_ids:
                 packet = line.packet_id
                 issue_cts = line.cts or packet.rdy_cts or 0.0
@@ -209,6 +218,15 @@ class DiamondFactoryReceive(models.Model):
         for rec in self:
             if not rec.employee_id:
                 raise UserError(_("Select the employee returning the packet."))
+            if not self.env["diamond.employee"].check_capable_for_process(
+                rec.employee_id, rec.process_id,
+            ):
+                raise UserError(_(
+                    "Employee %(employee)s is not assigned to process %(process)s."
+                ) % {
+                    "employee": rec.employee_id.display_name,
+                    "process": rec.process_id.display_name,
+                })
             for line in rec.line_ids:
                 self._apply_factory_receive_line(rec, line)
 

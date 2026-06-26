@@ -1,6 +1,6 @@
 {
     "name": "Diamond Packet Management",
-    "version": "18.0.1.7.0",
+    "version": "18.0.1.10.0",
     "summary": "Diamond packet lifecycle: inward, process / jobwork / factory / HPHT, outward — multi-company, barcode-ready.",
     "description": """
 Diamond Packet Management
@@ -26,8 +26,7 @@ Features
 * Monthly party invoices and worker salary slips from labour entries.
 * Strict per-company data isolation via record rules.
 """,
-    "author": "Custom",
-    "website": "https://example.com",
+    "author": "Deep Padsala",
     "category": "Industry/Diamond",
     "license": "LGPL-3",
     "depends": ["base", "web"],
@@ -50,6 +49,7 @@ Features
         "views/master_ledger_views.xml",
         "views/master_labour_views.xml",
         "views/labour_billing_views.xml",
+        "views/employee_withdrawal_views.xml",
         "views/master_price_views.xml",
         "views/master_product_views.xml",
         "views/packet_views.xml",
@@ -62,7 +62,7 @@ Features
         "wizard/barcode_search_views.xml",
         "wizard/packet_issue_wizard_views.xml",
         "wizard/packet_receive_wizard_views.xml",
-        "wizard/packet_issue_correction_wizard_views.xml",
+        "wizard/packet_rollback_wizard_views.xml",
         "views/live_stock_views.xml",
         "views/packet_history_views.xml",
         "wizard/jangad_print_wizard_views.xml",

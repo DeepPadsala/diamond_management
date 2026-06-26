@@ -411,42 +411,6 @@ class DiamondPacket(models.Model):
     def action_issue_hpht(self):
         return self._open_issue_wizard("hpht")
 
-    def _is_issue_correctable(self):
-        self.ensure_one()
-        if self.state in ("in_process", "in_factory", "in_jobwork", "in_hpht"):
-            return True
-        return bool(
-            self.state == "in_stock"
-            and self.pending_factory_employee_id
-            and self.pending_factory_process_id
-        )
-
-    def action_open_issue_correction(self):
-        """Open wizard to fix wrong process / employee / party after issue."""
-        correctable = self.filtered(lambda p: p._is_issue_correctable())
-        if not correctable:
-            raise UserError(_(
-                "Select packet(s) that are currently issued "
-                "(in process / factory / jobwork / HPHT) "
-                "or returned un-processed with a pending factory worker."
-            ))
-        skipped = self - correctable
-        if skipped:
-            raise UserError(_(
-                "These packets cannot be corrected: %s"
-            ) % ", ".join(skipped.mapped("barcode")))
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Correct Issue Assignment"),
-            "res_model": "diamond.packet.issue.correction.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "active_ids": correctable.ids,
-                "active_model": "diamond.packet",
-            },
-        }
-
     def _open_receive_wizard(self, mode=False):
         """Open the Receive wizard; auto-detect mode from state if omitted."""
         for rec in self:

@@ -9,6 +9,7 @@
                     <field name="code"/>
                     <field name="name"/>
                     <field name="role"/>
+                    <field name="process_ids" widget="many2many_tags" optional="show"/>
                     <field name="phone"/>
                     <field name="email"/>
                     <field name="user_id"/>
@@ -35,6 +36,27 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="active"/>
                         </group>
+                        <group string="Capable Processes">
+                            <field name="process_ids" widget="many2many_tags"
+                                   options="{'no_create_edit': True}"/>
+                        </group>
+                        <group string="Payroll">
+                            <field name="advance_balance" readonly="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Withdrawals" groups="diamond_packet_management.group_diamond_manager">
+                                <field name="withdrawal_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="date"/>
+                                        <field name="amount"/>
+                                        <field name="deducted_amount"/>
+                                        <field name="balance_amount"/>
+                                        <field name="state" widget="badge"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
                         <group string="Note"><field name="note" nolabel="1"/></group>
                     </sheet>
                 </form>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_diamond_packet_rollback_wizard_form" model="ir.ui.view">
+            <field name="name">diamond.packet.rollback.wizard.form</field>
+            <field name="model">diamond.packet.rollback.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Rollback Last Transaction">
+                    <sheet>
+                        <div class="alert alert-warning" role="alert">
+                            <p>
+                                This removes the <b>most recent</b> confirmed issue or receive
+                                for each packet (stack / LIFO). Run again to peel older entries.
+                                Delete the wrong entry, then create the correct one.
+                            </p>
+                        </div>
+                        <field name="packet_ids" invisible="1"/>
+                        <field name="line_ids" nolabel="1">
+                            <list create="false" delete="false" edit="false">
+                                <field name="barcode"/>
+                                <field name="packet_id"/>
+                                <field name="transaction_label" string="Will Roll Back"/>
+                            </list>
+                        </field>
+                    </sheet>
+                    <footer>
+                        <button name="action_confirm_rollback"
+                                string="Rollback"
+                                type="object"
+                                class="btn-primary"
+                                data-hotkey="q"/>
+                        <button string="Cancel"
+                                class="btn-secondary"
+                                special="cancel"
+                                data-hotkey="x"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_packet_rollback_wizard" model="ir.actions.act_window">
+            <field name="name">Rollback Last Transaction</field>
+            <field name="res_model">diamond.packet.rollback.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+        </record>
+
+        <record id="action_packet_rollback_server" model="ir.actions.server">
+            <field name="name">Rollback Last Transaction (Selected)</field>
+            <field name="model_id" ref="model_diamond_packet"/>
+            <field name="binding_model_id" ref="model_diamond_packet"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = records.action_open_rollback_wizard()</field>
+        </record>
+
+        <menuitem id="menu_diamond_utility_rollback"
+                  name="Rollback Last Transaction"
+                  parent="menu_diamond_utility_root"
+                  action="action_diamond_packet_rollback_wizard"
+                  sequence="15"/>
+
+    </data>
+</odoo>

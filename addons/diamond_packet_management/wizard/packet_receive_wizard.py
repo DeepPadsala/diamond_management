@@ -44,6 +44,7 @@ class DiamondPacketReceiveWizard(models.TransientModel):
     process_id = fields.Many2one("diamond.process", string="Process", required=True)
     ledger_id = fields.Many2one("diamond.ledger", string="Party / Vendor")
     employee_id = fields.Many2one("diamond.employee", string="Employee")
+    employee_domain = fields.Char(compute="_compute_employee_domain")
     note = fields.Text(string="Note")
 
     line_ids = fields.One2many(
@@ -70,6 +71,15 @@ class DiamondPacketReceiveWizard(models.TransientModel):
             rec.show_party_labour = rec.mode in ("process", "factory", "hpht")
             rec.show_unprocessed = rec.mode == "factory"
             rec.show_new_color = rec.mode == "hpht"
+
+    @api.depends("process_id")
+    def _compute_employee_domain(self):
+        Employee = self.env["diamond.employee"]
+        for rec in self:
+            if rec.process_id:
+                rec.employee_domain = str(Employee.domain_for_process(rec.process_id))
+            else:
+                rec.employee_domain = "[]"
 
     @api.depends("line_ids.old_cts", "line_ids.new_cts", "line_ids.loss_cts")
     def _compute_totals(self):
@@ -176,6 +186,24 @@ class DiamondPacketReceiveWizard(models.TransientModel):
                 "Received weight exceeds issued weight for: %s. "
                 "Tick 'Allow Gain' on those lines to override."
             ) % ", ".join(gain.filtered(lambda l: not l.allow_weight_gain).mapped("packet_id.packet_no")))
+
+        if self.employee_id and self.process_id and not self.env["diamond.employee"].check_capable_for_process(
+            self.employee_id, self.process_id,
+        ):
+            raise UserError(_(
+                "Employee %(employee)s is not assigned to process %(process)s."
+            ) % {
+                "employee": self.employee_id.display_name,
+                "process": self.process_id.display_name,
+            })
+
+    @api.onchange("process_id")
+    def _onchange_process_id(self):
+        if self.employee_id and self.process_id:
+            if not self.env["diamond.employee"].check_capable_for_process(
+                self.employee_id, self.process_id,
+            ):
+                self.employee_id = False
 
     def action_receive(self):
         self.ensure_one()

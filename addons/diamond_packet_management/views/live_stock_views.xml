@@ -27,7 +27,7 @@
                         <button name="action_receive_factory" type="object" string="Factory Receive"/>
                         <button name="action_receive_jobwork" type="object" string="Jobwork Receive"/>
                         <button name="action_receive_hpht" type="object" string="HPHT Receive"/>
-                        <button name="action_open_issue_correction" type="object" string="Correct Issue"/>
+                        <button name="action_open_rollback_wizard" type="object" string="Rollback Last Transaction"/>
                     </header>
                     <field name="packet_no" string="Sequence"/>
                     <field name="barcode"/>

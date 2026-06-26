@@ -34,6 +34,7 @@
                             <field name="show_party" invisible="1"/>
                             <field name="show_expected_return" invisible="1"/>
                             <field name="ledger_domain" invisible="1"/>
+                            <field name="employee_domain" invisible="1"/>
 
                             <field name="process_id"
                                    required="1"
@@ -45,6 +46,7 @@
                                    options="{'no_create_edit': True}"/>
                             <field name="employee_id"
                                    required="is_employee_required"
+                                   domain="employee_domain"
                                    options="{'no_create_edit': True}"/>
                             <field name="expected_return_date"
                                    invisible="not show_expected_return"

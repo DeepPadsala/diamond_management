@@ -7,6 +7,7 @@ class DiamondSalarySlip(models.Model):
 
     _name = "diamond.salary.slip"
     _description = "Worker Salary Slip"
+    _inherit = ["diamond.salary.slip.withdrawal.mixin"]
     _order = "period_year desc, period_month desc, id desc"
     _rec_name = "name"
 
@@ -29,7 +30,6 @@ class DiamondSalarySlip(models.Model):
     entry_ids = fields.One2many("diamond.labour.entry", "salary_slip_id", string="Labour Entries")
 
     total_pcs = fields.Integer(string="Total Pcs", compute="_compute_totals", store=True)
-    total_amount = fields.Float(string="Total Amount", digits=(14, 2), compute="_compute_totals", store=True)
 
     state = fields.Selection(
         [("draft", "Draft"), ("confirmed", "Confirmed"), ("paid", "Paid"), ("cancelled", "Cancelled")],
@@ -49,11 +49,10 @@ class DiamondSalarySlip(models.Model):
         ),
     ]
 
-    @api.depends("line_ids.pcs", "line_ids.amount")
+    @api.depends("line_ids.pcs")
     def _compute_totals(self):
         for rec in self:
             rec.total_pcs = sum(rec.line_ids.mapped("pcs"))
-            rec.total_amount = sum(rec.line_ids.mapped("amount"))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -67,8 +66,18 @@ class DiamondSalarySlip(models.Model):
         for rec in self:
             if not rec.line_ids:
                 raise UserError(_("Add at least one line before confirming."))
+            rec.action_apply_withdrawals()
             rec.entry_ids.write({"state": "invoiced"})
             rec.state = "confirmed"
+
+    def action_reopen_draft(self):
+        """Reopen a confirmed slip so withdrawals can be recalculated."""
+        for rec in self:
+            if rec.state != "confirmed":
+                raise UserError(_("Only confirmed salary slips can be reopened."))
+            rec.entry_ids.write({"state": "draft"})
+            rec.state = "draft"
+        self.action_apply_withdrawals()
 
     def action_mark_paid(self):
         for rec in self:
@@ -77,6 +86,7 @@ class DiamondSalarySlip(models.Model):
 
     def action_cancel(self):
         for rec in self:
+            rec._reverse_withdrawal_allocations()
             rec.entry_ids.write({"state": "draft", "salary_slip_id": False})
             rec.line_ids.unlink()
             rec.state = "cancelled"

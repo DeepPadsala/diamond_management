@@ -70,7 +70,7 @@ export class LiveStockListController extends ListController {
                 buttons: [
                     findButton((b) => (b.string || "").includes("Issue Packet")),
                     findButton((b) => (b.string || "").includes("Receive Packet")),
-                    findButton((b) => b.clickParams?.name === "action_open_issue_correction"),
+                    findButton((b) => b.clickParams?.name === "action_open_rollback_wizard"),
                 ],
             },
             {

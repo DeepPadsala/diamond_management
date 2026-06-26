@@ -81,6 +81,14 @@ class DiamondPartyInvoice(models.Model):
             rec.line_ids.unlink()
             rec.state = "cancelled"
 
+    def action_reopen_draft(self):
+        """Reopen a confirmed invoice so new labour lines can be added."""
+        for rec in self:
+            if rec.state != "confirmed":
+                raise UserError(_("Only confirmed party invoices can be reopened."))
+            rec.entry_ids.write({"state": "draft"})
+            rec.state = "draft"
+
     def action_draft(self):
         self.filtered(lambda r: r.state == "cancelled").write({"state": "draft"})
 

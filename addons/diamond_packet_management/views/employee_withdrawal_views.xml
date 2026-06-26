@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ─────────── Withdrawal list / form ─────────── -->
+        <record id="view_diamond_employee_withdrawal_list" model="ir.ui.view">
+            <field name="name">diamond.employee.withdrawal.list</field>
+            <field name="model">diamond.employee.withdrawal</field>
+            <field name="arch" type="xml">
+                <list string="Employee Withdrawals"
+                      decoration-info="state == 'draft'"
+                      decoration-success="state == 'confirmed' and balance_amount == 0"
+                      decoration-warning="state == 'confirmed' and balance_amount &gt; 0"
+                      decoration-muted="state == 'cancelled'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="employee_id"/>
+                    <field name="amount" sum="Total Withdrawn"/>
+                    <field name="deducted_amount" sum="Recovered"/>
+                    <field name="balance_amount" sum="Outstanding"/>
+                    <field name="state" widget="badge"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_diamond_employee_withdrawal_form" model="ir.ui.view">
+            <field name="name">diamond.employee.withdrawal.form</field>
+            <field name="model">diamond.employee.withdrawal</field>
+            <field name="arch" type="xml">
+                <form string="Employee Withdrawal">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object"
+                                class="btn-primary" invisible="state != 'draft'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state != 'confirmed'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
+                        <button name="action_draft" string="Reset to Draft" type="object"
+                                invisible="state != 'cancelled'"
+                                groups="diamond_packet_management.group_diamond_manager"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id" readonly="state != 'draft'"/>
+                                <field name="date" readonly="state != 'draft'"/>
+                                <field name="amount" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="deducted_amount" readonly="1"/>
+                                <field name="balance_amount" readonly="1"/>
+                                <field name="company_id" groups="base.group_multi_company"
+                                       readonly="state != 'draft'"/>
+                            </group>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1" readonly="state != 'draft'"/>
+                        </group>
+                        <notebook invisible="not slip_line_ids">
+                            <page string="Salary Deductions">
+                                <field name="slip_line_ids" readonly="1">
+                                    <list>
+                                        <field name="slip_id"/>
+                                        <field name="amount"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_employee_withdrawal_search" model="ir.ui.view">
+            <field name="name">diamond.employee.withdrawal.search</field>
+            <field name="model">diamond.employee.withdrawal</field>
+            <field name="arch" type="xml">
+                <search string="Withdrawals">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                    <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
+                    <filter name="open_balance" string="Outstanding Balance"
+                            domain="[('state','=','confirmed'),('balance_amount','&gt;',0)]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                        <filter name="group_month" string="Month" context="{'group_by': 'period_month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_diamond_employee_withdrawal" model="ir.actions.act_window">
+            <field name="name">Employee Withdrawals</field>
+            <field name="res_model">diamond.employee.withdrawal</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_confirmed': 1}</field>
+        </record>
+
+        <menuitem id="menu_diamond_employee_withdrawal"
+                  name="Employee Withdrawals"
+                  parent="menu_diamond_labour_root"
+                  action="action_diamond_employee_withdrawal"
+                  sequence="25"
+                  groups="diamond_packet_management.group_diamond_manager"/>
+
+    </data>
+</odoo>
