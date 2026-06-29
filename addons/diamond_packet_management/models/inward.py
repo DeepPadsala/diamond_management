@@ -7,23 +7,25 @@ class DiamondInward(models.Model):
 
     _name = "diamond.inward"
     _description = "Diamond Inward Entry"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date desc, id desc"
     _rec_name = "name"
 
-    name = fields.Char(string="Inward No.", required=True, copy=False, readonly=True, default=lambda self: _("New"))
+    name = fields.Char(string="Inward No.", required=True, copy=False, readonly=True, default=lambda self: _("New"), tracking=True)
     company_id = fields.Many2one(
         "res.company", string="Company", required=True, index=True, default=lambda self: self.env.company,
     )
-    date = fields.Datetime(string="Date", default=fields.Datetime.now, required=True)
-    ledger_id = fields.Many2one("diamond.ledger", string="Party", required=True)
+    date = fields.Datetime(string="Date", default=fields.Datetime.now, required=True, tracking=True)
+    ledger_id = fields.Many2one("diamond.ledger", string="Party", required=True, tracking=True)
     party_barcode = fields.Char(string="Party Barcode (scan)")
-    ref = fields.Char(string="Reference / Challan")
+    ref = fields.Char(string="Reference / Challan", tracking=True)
 
     state = fields.Selection(
         selection=[("draft", "Draft"), ("confirmed", "Confirmed"), ("cancelled", "Cancelled")],
         string="Status",
         default="draft",
         required=True,
+        tracking=True,
     )
 
     line_ids = fields.One2many("diamond.inward.line", "inward_id", string="Lines")

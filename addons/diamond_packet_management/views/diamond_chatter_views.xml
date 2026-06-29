@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ── Chatter on existing form views ── -->
+        <record id="view_diamond_packet_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.packet.form.chatter</field>
+            <field name="model">diamond.packet</field>
+            <field name="inherit_id" ref="view_diamond_packet_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_inward_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.inward.form.chatter</field>
+            <field name="model">diamond.inward</field>
+            <field name="inherit_id" ref="view_diamond_inward_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_outward_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.outward.form.chatter</field>
+            <field name="model">diamond.outward</field>
+            <field name="inherit_id" ref="view_diamond_outward_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_process_issue_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.process.issue.form.chatter</field>
+            <field name="model">diamond.process.issue</field>
+            <field name="inherit_id" ref="view_diamond_process_issue_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_process_receive_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.process.receive.form.chatter</field>
+            <field name="model">diamond.process.receive</field>
+            <field name="inherit_id" ref="view_diamond_process_receive_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_jobwork_issue_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.jobwork.issue.form.chatter</field>
+            <field name="model">diamond.jobwork.issue</field>
+            <field name="inherit_id" ref="view_diamond_jobwork_issue_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_jobwork_receive_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.jobwork.receive.form.chatter</field>
+            <field name="model">diamond.jobwork.receive</field>
+            <field name="inherit_id" ref="view_diamond_jobwork_receive_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_factory_issue_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.factory.issue.form.chatter</field>
+            <field name="model">diamond.factory.issue</field>
+            <field name="inherit_id" ref="view_diamond_factory_issue_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_factory_receive_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.factory.receive.form.chatter</field>
+            <field name="model">diamond.factory.receive</field>
+            <field name="inherit_id" ref="view_diamond_factory_receive_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_hpht_issue_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.hpht.issue.form.chatter</field>
+            <field name="model">diamond.hpht.issue</field>
+            <field name="inherit_id" ref="view_diamond_hpht_issue_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_hpht_receive_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.hpht.receive.form.chatter</field>
+            <field name="model">diamond.hpht.receive</field>
+            <field name="inherit_id" ref="view_diamond_hpht_receive_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_party_invoice_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.party.invoice.form.chatter</field>
+            <field name="model">diamond.party.invoice</field>
+            <field name="inherit_id" ref="view_diamond_party_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_salary_slip_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.salary.slip.form.chatter</field>
+            <field name="model">diamond.salary.slip</field>
+            <field name="inherit_id" ref="view_diamond_salary_slip_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_employee_withdrawal_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.employee.withdrawal.form.chatter</field>
+            <field name="model">diamond.employee.withdrawal</field>
+            <field name="inherit_id" ref="view_diamond_employee_withdrawal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_employee_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.employee.form.chatter</field>
+            <field name="model">diamond.employee</field>
+            <field name="inherit_id" ref="view_diamond_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_ledger_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.ledger.form.chatter</field>
+            <field name="model">diamond.ledger</field>
+            <field name="inherit_id" ref="view_diamond_ledger_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_shape_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.shape.form.chatter</field>
+            <field name="model">diamond.shape</field>
+            <field name="inherit_id" ref="view_diamond_shape_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_diamond_product_form_chatter" model="ir.ui.view">
+            <field name="name">diamond.product.form.chatter</field>
+            <field name="model">diamond.product</field>
+            <field name="inherit_id" ref="view_diamond_product_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet" position="after">
+                    <chatter/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- ── New form views (list-only masters / records) ── -->
+        <record id="view_diamond_color_form" model="ir.ui.view">
+            <field name="name">diamond.color.form</field>
+            <field name="model">diamond.color</field>
+            <field name="arch" type="xml">
+                <form string="Color">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="grade_value"/>
+                            <field name="is_fancy_color"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_clarity_form" model="ir.ui.view">
+            <field name="name">diamond.clarity.form</field>
+            <field name="model">diamond.clarity</field>
+            <field name="arch" type="xml">
+                <form string="Clarity">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="grade_value"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_cut_form" model="ir.ui.view">
+            <field name="name">diamond.cut.form</field>
+            <field name="model">diamond.cut</field>
+            <field name="arch" type="xml">
+                <form string="Cut">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_polish_form" model="ir.ui.view">
+            <field name="name">diamond.polish.form</field>
+            <field name="model">diamond.polish</field>
+            <field name="arch" type="xml">
+                <form string="Polish">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_symmetry_form" model="ir.ui.view">
+            <field name="name">diamond.symmetry.form</field>
+            <field name="model">diamond.symmetry</field>
+            <field name="arch" type="xml">
+                <form string="Symmetry">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_fluorescence_form" model="ir.ui.view">
+            <field name="name">diamond.fluorescence.form</field>
+            <field name="model">diamond.fluorescence</field>
+            <field name="arch" type="xml">
+                <form string="Fluorescence">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_lab_form" model="ir.ui.view">
+            <field name="name">diamond.lab.form</field>
+            <field name="model">diamond.lab</field>
+            <field name="arch" type="xml">
+                <form string="Lab">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="full_name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_charni_form" model="ir.ui.view">
+            <field name="name">diamond.charni.form</field>
+            <field name="model">diamond.charni</field>
+            <field name="arch" type="xml">
+                <form string="Charni">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="size_from_mm"/>
+                            <field name="size_to_mm"/>
+                            <field name="weight_pp_cts"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_process_form" model="ir.ui.view">
+            <field name="name">diamond.process.form</field>
+            <field name="model">diamond.process</field>
+            <field name="arch" type="xml">
+                <form string="Process">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="process_type"/>
+                            <field name="expected_days"/>
+                            <field name="expected_loss_pct"/>
+                            <field name="sequence_no"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_account_group_form" model="ir.ui.view">
+            <field name="name">diamond.account.group.form</field>
+            <field name="model">diamond.account.group</field>
+            <field name="arch" type="xml">
+                <form string="Account Group">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_party_labour_form" model="ir.ui.view">
+            <field name="name">diamond.party.labour.form</field>
+            <field name="model">diamond.party.labour</field>
+            <field name="arch" type="xml">
+                <form string="Party Labour Rate">
+                    <sheet>
+                        <group>
+                            <field name="ledger_id"/>
+                            <field name="process_id"/>
+                            <field name="packet_type"/>
+                            <field name="from_cts"/>
+                            <field name="to_cts"/>
+                            <field name="rate"/>
+                            <field name="multiply_by"/>
+                            <field name="multiply_by_weight_loss"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_worker_labour_form" model="ir.ui.view">
+            <field name="name">diamond.worker.labour.form</field>
+            <field name="model">diamond.worker.labour</field>
+            <field name="arch" type="xml">
+                <form string="Worker Labour Rate">
+                    <sheet>
+                        <group>
+                            <field name="process_id"/>
+                            <field name="packet_type"/>
+                            <field name="from_cts"/>
+                            <field name="to_cts"/>
+                            <field name="rate"/>
+                            <field name="multiply_by"/>
+                            <field name="multiply_by_weight_loss"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_price_form" model="ir.ui.view">
+            <field name="name">diamond.price.form</field>
+            <field name="model">diamond.price</field>
+            <field name="arch" type="xml">
+                <form string="Price">
+                    <sheet>
+                        <group>
+                            <field name="shape_id"/>
+                            <field name="color_id"/>
+                            <field name="clarity_id"/>
+                            <field name="from_cts"/>
+                            <field name="to_cts"/>
+                            <field name="rate_per_cts"/>
+                            <field name="discount_pct"/>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Note">
+                            <field name="note" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_diamond_labour_entry_form" model="ir.ui.view">
+            <field name="name">diamond.labour.entry.form</field>
+            <field name="model">diamond.labour.entry</field>
+            <field name="arch" type="xml">
+                <form string="Labour Entry" create="0" edit="0">
+                    <sheet>
+                        <group>
+                            <field name="entry_type"/>
+                            <field name="date"/>
+                            <field name="ledger_id"/>
+                            <field name="employee_id"/>
+                            <field name="process_id"/>
+                            <field name="packet_id"/>
+                            <field name="receive_doc_name"/>
+                            <field name="pcs"/>
+                            <field name="cts"/>
+                            <field name="loss_cts"/>
+                            <field name="rate"/>
+                            <field name="amount"/>
+                            <field name="state"/>
+                            <field name="party_invoice_id"/>
+                            <field name="salary_slip_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_diamond_labour_entry" model="ir.actions.act_window">
+            <field name="view_mode">list,form</field>
+        </record>
+
+    </data>
+</odoo>

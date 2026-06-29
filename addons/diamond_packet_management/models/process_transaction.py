@@ -12,19 +12,20 @@ class DiamondMovementMixin(models.AbstractModel):
 
     _name = "diamond.movement.mixin"
     _description = "Diamond Movement Mixin"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    name = fields.Char(string="Doc No.", required=True, copy=False, readonly=True, default=lambda self: _("New"))
+    name = fields.Char(string="Doc No.", required=True, copy=False, readonly=True, default=lambda self: _("New"), tracking=True)
     company_id = fields.Many2one(
         "res.company", string="Company", required=True, index=True, default=lambda self: self.env.company,
     )
-    date = fields.Datetime(string="Date", default=fields.Datetime.now, required=True)
-    process_id = fields.Many2one("diamond.process", string="Process")
-    ledger_id = fields.Many2one("diamond.ledger", string="Party / Vendor")
-    employee_id = fields.Many2one("diamond.employee", string="Employee")
+    date = fields.Datetime(string="Date", default=fields.Datetime.now, required=True, tracking=True)
+    process_id = fields.Many2one("diamond.process", string="Process", tracking=True)
+    ledger_id = fields.Many2one("diamond.ledger", string="Party / Vendor", tracking=True)
+    employee_id = fields.Many2one("diamond.employee", string="Employee", tracking=True)
     note = fields.Text(string="Note")
     state = fields.Selection(
         selection=[("draft", "Draft"), ("confirmed", "Confirmed"), ("cancelled", "Cancelled")],
-        string="Status", default="draft", required=True,
+        string="Status", default="draft", required=True, tracking=True,
     )
 
     total_pcs = fields.Integer(string="Total Pcs", compute="_compute_totals", store=True)

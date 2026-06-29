@@ -25,9 +25,10 @@ class DiamondLedger(models.Model):
         string="Party Type",
         default="customer",
         required=True,
+        tracking=True,
     )
-    account_group_id = fields.Many2one("diamond.account.group", string="Account Group")
-    barcode = fields.Char(string="Party Barcode", help="Used by barcode gun on Inward / Outward forms.")
+    account_group_id = fields.Many2one("diamond.account.group", string="Account Group", tracking=True)
+    barcode = fields.Char(string="Party Barcode", help="Used by barcode gun on Inward / Outward forms.", tracking=True)
 
     address_line = fields.Char(string="Address")
     city = fields.Char(string="City")
@@ -40,7 +41,7 @@ class DiamondLedger(models.Model):
     gst_no = fields.Char(string="GST / Tax No.")
     pan_no = fields.Char(string="PAN")
 
-    opening_balance = fields.Float(string="Opening Balance", digits=(16, 2))
+    opening_balance = fields.Float(string="Opening Balance", digits=(16, 2), tracking=True)
 
     # Repeat the mixin's code-uniqueness constraint here so it is
     # preserved regardless of how Odoo merges _sql_constraints across

@@ -22,9 +22,10 @@ class DiamondEmployee(models.Model):
         ],
         string="Role",
         default="other",
+        tracking=True,
     )
-    join_date = fields.Date(string="Joined On")
-    user_id = fields.Many2one("res.users", string="Linked Login User", help="Optional Odoo login for this employee.")
+    join_date = fields.Date(string="Joined On", tracking=True)
+    user_id = fields.Many2one("res.users", string="Linked Login User", help="Optional Odoo login for this employee.", tracking=True)
     process_ids = fields.Many2many(
         "diamond.process",
         "diamond_employee_process_rel",
@@ -32,6 +33,7 @@ class DiamondEmployee(models.Model):
         "process_id",
         string="Capable Processes",
         help="Processes this employee can work on. Leave empty to allow all processes.",
+        tracking=True,
     )
     withdrawal_ids = fields.One2many(
         "diamond.employee.withdrawal", "employee_id", string="Withdrawals",

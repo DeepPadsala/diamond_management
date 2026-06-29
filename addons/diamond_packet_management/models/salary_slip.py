@@ -7,13 +7,13 @@ class DiamondSalarySlip(models.Model):
 
     _name = "diamond.salary.slip"
     _description = "Worker Salary Slip"
-    _inherit = ["diamond.salary.slip.withdrawal.mixin"]
+    _inherit = ["diamond.salary.slip.withdrawal.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "period_year desc, period_month desc, id desc"
     _rec_name = "name"
 
     name = fields.Char(string="Slip No.", required=True, copy=False, readonly=True, default=lambda self: _("New"))
     company_id = fields.Many2one("res.company", required=True, index=True, default=lambda self: self.env.company)
-    employee_id = fields.Many2one("diamond.employee", string="Worker", required=True, index=True)
+    employee_id = fields.Many2one("diamond.employee", string="Worker", required=True, index=True, tracking=True)
     period_month = fields.Selection(
         selection=[
             ("1", "January"), ("2", "February"), ("3", "March"), ("4", "April"),
@@ -22,9 +22,10 @@ class DiamondSalarySlip(models.Model):
         ],
         string="Month",
         required=True,
+        tracking=True,
     )
-    period_year = fields.Integer(string="Year", required=True, default=lambda self: fields.Date.today().year)
-    date = fields.Date(string="Slip Date", default=fields.Date.context_today, required=True)
+    period_year = fields.Integer(string="Year", required=True, default=lambda self: fields.Date.today().year, tracking=True)
+    date = fields.Date(string="Slip Date", default=fields.Date.context_today, required=True, tracking=True)
 
     line_ids = fields.One2many("diamond.salary.slip.line", "slip_id", string="Lines")
     entry_ids = fields.One2many("diamond.labour.entry", "salary_slip_id", string="Labour Entries")
@@ -36,13 +37,15 @@ class DiamondSalarySlip(models.Model):
         string="Status",
         default="draft",
         required=True,
+        tracking=True,
     )
     note = fields.Text(string="Note")
-    payment_ref = fields.Char(string="Payment Reference")
-    payment_date = fields.Date(string="Payment Date")
+    payment_ref = fields.Char(string="Payment Reference", tracking=True)
+    payment_date = fields.Date(string="Payment Date", tracking=True)
     is_supplemental = fields.Boolean(
         string="Supplemental",
         default=False,
+        tracking=True,
         help="Additional salary slip for the same month (e.g. mid-month advance after the main slip was paid).",
     )
 

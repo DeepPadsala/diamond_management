@@ -7,12 +7,13 @@ class DiamondPartyInvoice(models.Model):
 
     _name = "diamond.party.invoice"
     _description = "Party Labour Invoice"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "period_year desc, period_month desc, id desc"
     _rec_name = "name"
 
     name = fields.Char(string="Invoice No.", required=True, copy=False, readonly=True, default=lambda self: _("New"))
     company_id = fields.Many2one("res.company", required=True, index=True, default=lambda self: self.env.company)
-    ledger_id = fields.Many2one("diamond.ledger", string="Party", required=True, index=True)
+    ledger_id = fields.Many2one("diamond.ledger", string="Party", required=True, index=True, tracking=True)
     period_month = fields.Selection(
         selection=[
             ("1", "January"), ("2", "February"), ("3", "March"), ("4", "April"),
@@ -21,9 +22,10 @@ class DiamondPartyInvoice(models.Model):
         ],
         string="Month",
         required=True,
+        tracking=True,
     )
-    period_year = fields.Integer(string="Year", required=True, default=lambda self: fields.Date.today().year)
-    date = fields.Date(string="Invoice Date", default=fields.Date.context_today, required=True)
+    period_year = fields.Integer(string="Year", required=True, default=lambda self: fields.Date.today().year, tracking=True)
+    date = fields.Date(string="Invoice Date", default=fields.Date.context_today, required=True, tracking=True)
 
     line_ids = fields.One2many("diamond.party.invoice.line", "invoice_id", string="Lines")
     entry_ids = fields.One2many("diamond.labour.entry", "party_invoice_id", string="Labour Entries")
@@ -36,13 +38,15 @@ class DiamondPartyInvoice(models.Model):
         string="Status",
         default="draft",
         required=True,
+        tracking=True,
     )
     note = fields.Text(string="Note")
-    payment_ref = fields.Char(string="Payment Reference")
-    payment_date = fields.Date(string="Payment Date")
+    payment_ref = fields.Char(string="Payment Reference", tracking=True)
+    payment_date = fields.Date(string="Payment Date", tracking=True)
     is_supplemental = fields.Boolean(
         string="Supplemental",
         default=False,
+        tracking=True,
         help="Additional invoice for the same month (e.g. after an earlier invoice was paid).",
     )
 

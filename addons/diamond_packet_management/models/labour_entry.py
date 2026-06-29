@@ -6,6 +6,7 @@ class DiamondLabourEntry(models.Model):
 
     _name = "diamond.labour.entry"
     _description = "Labour Entry"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date desc, id desc"
     _rec_name = "display_name"
 
@@ -20,10 +21,10 @@ class DiamondLabourEntry(models.Model):
     period_month = fields.Integer(string="Month", compute="_compute_period", store=True, index=True)
     period_year = fields.Integer(string="Year", compute="_compute_period", store=True, index=True)
 
-    ledger_id = fields.Many2one("diamond.ledger", string="Party", index=True)
-    employee_id = fields.Many2one("diamond.employee", string="Worker", index=True)
-    process_id = fields.Many2one("diamond.process", string="Process", required=True)
-    packet_id = fields.Many2one("diamond.packet", string="Packet", required=True, ondelete="restrict")
+    ledger_id = fields.Many2one("diamond.ledger", string="Party", index=True, tracking=True)
+    employee_id = fields.Many2one("diamond.employee", string="Worker", index=True, tracking=True)
+    process_id = fields.Many2one("diamond.process", string="Process", required=True, tracking=True)
+    packet_id = fields.Many2one("diamond.packet", string="Packet", required=True, ondelete="restrict", tracking=True)
 
     receive_model = fields.Char(string="Receive Model", index=True)
     receive_line_id = fields.Integer(string="Receive Line ID", index=True)
@@ -54,7 +55,7 @@ class DiamondLabourEntry(models.Model):
         ],
         string="Basis",
     )
-    amount = fields.Float(string="Amount", digits=(14, 2), required=True)
+    amount = fields.Float(string="Amount", digits=(14, 2), required=True, tracking=True)
 
     state = fields.Selection(
         [("draft", "Open"), ("invoiced", "Invoiced"), ("paid", "Paid")],
@@ -62,9 +63,10 @@ class DiamondLabourEntry(models.Model):
         default="draft",
         required=True,
         index=True,
+        tracking=True,
     )
-    party_invoice_id = fields.Many2one("diamond.party.invoice", string="Party Invoice", ondelete="set null")
-    salary_slip_id = fields.Many2one("diamond.salary.slip", string="Salary Slip", ondelete="set null")
+    party_invoice_id = fields.Many2one("diamond.party.invoice", string="Party Invoice", ondelete="set null", tracking=True)
+    salary_slip_id = fields.Many2one("diamond.salary.slip", string="Salary Slip", ondelete="set null", tracking=True)
 
     display_name = fields.Char(compute="_compute_display_name", store=True)
 

@@ -23,7 +23,8 @@ class DiamondProcess(models.Model):
         string="Process Type",
         default="internal",
         required=True,
+        tracking=True,
     )
-    expected_days = fields.Integer(string="Expected Days", default=1)
-    expected_loss_pct = fields.Float(string="Expected Loss %", digits=(5, 2))
+    expected_days = fields.Integer(string="Expected Days", default=1, tracking=True)
+    expected_loss_pct = fields.Float(string="Expected Loss %", digits=(5, 2), tracking=True)
     sequence_no = fields.Integer(string="Workflow Step", help="Order in standard workflow.", default=10)

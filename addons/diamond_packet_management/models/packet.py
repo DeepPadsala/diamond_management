@@ -17,6 +17,7 @@ class DiamondPacket(models.Model):
 
     _name = "diamond.packet"
     _description = "Diamond Packet"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc, id desc"
     _rec_name = "packet_no"
 
@@ -52,9 +53,9 @@ class DiamondPacket(models.Model):
 
     # ───────────────────────── Master links ─────────────────────────
     product_id = fields.Many2one("diamond.product", string="Product")
-    shape_id = fields.Many2one("diamond.shape", string="Shape", required=True)
-    color_id = fields.Many2one("diamond.color", string="Color", required=True)
-    clarity_id = fields.Many2one("diamond.clarity", string="Clarity", required=True)
+    shape_id = fields.Many2one("diamond.shape", string="Shape", required=True, tracking=True)
+    color_id = fields.Many2one("diamond.color", string="Color", required=True, tracking=True)
+    clarity_id = fields.Many2one("diamond.clarity", string="Clarity", required=True, tracking=True)
     cut_id = fields.Many2one("diamond.cut", string="Cut")
     polish_id = fields.Many2one("diamond.polish", string="Polish")
     symmetry_id = fields.Many2one("diamond.symmetry", string="Symmetry")
@@ -69,8 +70,8 @@ class DiamondPacket(models.Model):
     org_pcs = fields.Integer(string="Original Pcs", default=1)
     org_cts = fields.Float(string="Original Cts", digits=(12, 4))
     expected_cts = fields.Float(string="Expected Cts", digits=(12, 4))
-    rdy_pcs = fields.Integer(string="Ready Pcs", default=1)
-    rdy_cts = fields.Float(string="Ready Cts", digits=(12, 4))
+    rdy_pcs = fields.Integer(string="Ready Pcs", default=1, tracking=True)
+    rdy_cts = fields.Float(string="Ready Cts", digits=(12, 4), tracking=True)
     rate_per_cts = fields.Float(string="Rate / Cts", digits=(12, 2))
     amount = fields.Float(string="Amount", compute="_compute_amount", store=True, digits=(14, 2))
 
@@ -91,6 +92,7 @@ class DiamondPacket(models.Model):
         default="draft",
         required=True,
         index=True,
+        tracking=True,
     )
 
     # ───────────────────────── Current location ─────────────────────────
@@ -107,10 +109,11 @@ class DiamondPacket(models.Model):
         string="Current Location",
         default="office",
         index=True,
+        tracking=True,
     )
-    current_holder_id = fields.Many2one("diamond.ledger", string="Current Holder (Party)")
-    current_employee_id = fields.Many2one("diamond.employee", string="Current Holder (Employee)")
-    current_process_id = fields.Many2one("diamond.process", string="Current Process")
+    current_holder_id = fields.Many2one("diamond.ledger", string="Current Holder (Party)", tracking=True)
+    current_employee_id = fields.Many2one("diamond.employee", string="Current Holder (Employee)", tracking=True)
+    current_process_id = fields.Many2one("diamond.process", string="Current Process", tracking=True)
 
     # Suspended factory process (receive with Un-Processed = process not finished yet)
     pending_factory_employee_id = fields.Many2one(

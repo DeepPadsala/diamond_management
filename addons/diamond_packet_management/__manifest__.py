@@ -1,6 +1,6 @@
 {
     "name": "Diamond Packet Management",
-    "version": "18.0.1.11.1",
+    "version": "18.0.1.12.0",
     "summary": "Diamond packet lifecycle: inward, process / jobwork / factory / HPHT, outward — multi-company, barcode-ready.",
     "description": """
 Diamond Packet Management
@@ -29,7 +29,7 @@ Features
     "author": "Deep Padsala",
     "category": "Industry/Diamond",
     "license": "LGPL-3",
-    "depends": ["base", "web"],
+    "depends": ["base", "web", "mail"],
     "data": [
         "security/diamond_security.xml",
         "security/ir.model.access.csv",
@@ -68,6 +68,7 @@ Features
         "wizard/jangad_print_wizard_views.xml",
         "wizard/inward_barcode_print_wizard_views.xml",
         "wizard/monthly_labour_wizard_views.xml",
+        "views/diamond_chatter_views.xml",
         "report/jangad_report.xml",
         "report/barcode_label_report.xml",
         "views/barcode_labels_html.xml",

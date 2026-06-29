@@ -11,13 +11,14 @@ class DiamondMasterMixin(models.AbstractModel):
 
     _name = "diamond.master.mixin"
     _description = "Diamond Master Mixin"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _rec_name = "code"
     _order = "sequence, code, id"
 
-    code = fields.Char(string="Code", required=True, index=True, size=16)
-    name = fields.Char(string="Name", required=True, translate=False)
+    code = fields.Char(string="Code", required=True, index=True, size=16, tracking=True)
+    name = fields.Char(string="Name", required=True, translate=False, tracking=True)
     sequence = fields.Integer(string="Sequence", default=10)
-    active = fields.Boolean(string="Active", default=True)
+    active = fields.Boolean(string="Active", default=True, tracking=True)
     note = fields.Text(string="Note")
     company_id = fields.Many2one(
         "res.company",

@@ -7,6 +7,7 @@ class DiamondEmployeeWithdrawal(models.Model):
 
     _name = "diamond.employee.withdrawal"
     _description = "Employee Withdrawal"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date desc, id desc"
     _rec_name = "name"
 
@@ -19,13 +20,13 @@ class DiamondEmployeeWithdrawal(models.Model):
         default=lambda self: self.env.company,
     )
     employee_id = fields.Many2one(
-        "diamond.employee", string="Employee", required=True, index=True,
+        "diamond.employee", string="Employee", required=True, index=True, tracking=True,
     )
     date = fields.Date(
         string="Withdrawal Date", required=True,
-        default=fields.Date.context_today, index=True,
+        default=fields.Date.context_today, index=True, tracking=True,
     )
-    amount = fields.Float(string="Amount", digits=(14, 2), required=True)
+    amount = fields.Float(string="Amount", digits=(14, 2), required=True, tracking=True)
     deducted_amount = fields.Float(
         string="Recovered via Salary", digits=(14, 2), readonly=True, copy=False,
     )
@@ -45,7 +46,7 @@ class DiamondEmployeeWithdrawal(models.Model):
             ("confirmed", "Confirmed"),
             ("cancelled", "Cancelled"),
         ],
-        string="Status", default="draft", required=True, index=True,
+        string="Status", default="draft", required=True, index=True, tracking=True,
     )
     note = fields.Text(string="Note")
     slip_line_ids = fields.One2many(
