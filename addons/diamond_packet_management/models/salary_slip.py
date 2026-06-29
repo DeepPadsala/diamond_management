@@ -40,14 +40,11 @@ class DiamondSalarySlip(models.Model):
     note = fields.Text(string="Note")
     payment_ref = fields.Char(string="Payment Reference")
     payment_date = fields.Date(string="Payment Date")
-
-    _sql_constraints = [
-        (
-            "employee_period_uniq",
-            "unique(employee_id, period_month, period_year, company_id)",
-            "A salary slip already exists for this worker and month.",
-        ),
-    ]
+    is_supplemental = fields.Boolean(
+        string="Supplemental",
+        default=False,
+        help="Additional salary slip for the same month (e.g. mid-month advance after the main slip was paid).",
+    )
 
     @api.depends("line_ids.pcs")
     def _compute_totals(self):

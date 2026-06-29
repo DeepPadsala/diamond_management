@@ -74,19 +74,23 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
             ("company_id", "=", self.company_id.id),
         ]
 
+    def _has_closed_document(self, model_name, month, partner_field, partner):
+        """Return True when a confirmed or paid document already exists for the period."""
+        Doc = self.env[model_name]
+        base = self._document_domain(model_name, month, partner_field, partner)
+        return bool(Doc.search_count(base + [("state", "in", ("confirmed", "paid"))]))
+
     def _find_or_reopen_document(self, model_name, month, partner_field, partner):
         """Return a draft billing document, reopening confirmed ones when needed."""
         Doc = self.env[model_name]
         base = self._document_domain(model_name, month, partner_field, partner)
-        draft = Doc.search(base + [("state", "=", "draft")], limit=1)
+        draft = Doc.search(base + [("state", "=", "draft")], order="id desc", limit=1)
         if draft:
             return draft, None
-        confirmed = Doc.search(base + [("state", "=", "confirmed")], limit=1)
+        confirmed = Doc.search(base + [("state", "=", "confirmed")], order="id desc", limit=1)
         if confirmed:
             confirmed.action_reopen_draft()
             return confirmed, None
-        if Doc.search_count(base + [("state", "=", "paid")]):
-            return Doc, "paid"
         return Doc, "new"
 
     def action_generate(self):
@@ -97,33 +101,11 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
         month = int(self.period_month)
         touched_invoices = self.env["diamond.party.invoice"]
         touched_slips = self.env["diamond.salary.slip"]
-        lines_added = 0
-        blocked_parties = []
-        blocked_employees = []
 
         if self.generate_party_invoices:
-            touched_invoices, added, blocked_parties = self._generate_party_invoices(month)
-            lines_added += added
+            touched_invoices, _added = self._generate_party_invoices(month)
         if self.generate_salary_slips:
-            touched_slips, added, blocked_employees = self._generate_salary_slips(month)
-            lines_added += added
-
-        if blocked_parties or blocked_employees:
-            details = []
-            if blocked_parties:
-                details.append(_("Parties with paid invoices: %s") % ", ".join(
-                    blocked_parties.mapped("display_name")
-                ))
-            if blocked_employees:
-                details.append(_("Workers with paid salary slips: %s") % ", ".join(
-                    blocked_employees.mapped("display_name")
-                ))
-            if not touched_invoices and not touched_slips:
-                raise UserError(_(
-                    "Labour entries exist but could not be billed.\n\n%s\n\n"
-                    "Paid documents cannot be reopened. Create a manual adjustment "
-                    "or handle the new labour entries outside this wizard."
-                ) % "\n".join(details))
+            touched_slips, _added = self._generate_salary_slips(month)
 
         if not touched_invoices and not touched_slips:
             Entry = self.env["diamond.labour.entry"]
@@ -132,9 +114,7 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
             if open_party or open_worker:
                 raise UserError(_(
                     "Labour entries exist but could not be billed. "
-                    "A confirmed or paid invoice/slip may already exist for this month. "
-                    "Open the existing salary slip or party invoice and use "
-                    "'Reopen for Withdrawals' / reopen draft, then run this wizard again."
+                    "Open existing draft invoices or salary slips for this month."
                 ))
             linked_party = Entry.search_count(
                 self._period_domain(month) + [
@@ -155,27 +135,40 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
                 ))
             raise UserError(_("No open labour entries found for the selected month."))
 
+        month = int(self.period_month)
         if touched_invoices and touched_slips:
             return self._open_documents_action(
                 _("Monthly Labour Documents"),
                 "diamond.party.invoice",
-                touched_invoices.ids,
+                touched_invoices,
+                month,
             )
         if touched_invoices:
             return self._open_documents_action(
-                _("Party Invoices"), "diamond.party.invoice", touched_invoices.ids,
+                _("Party Invoices"), "diamond.party.invoice", touched_invoices, month,
             )
         return self._open_documents_action(
-            _("Salary Slips"), "diamond.salary.slip", touched_slips.ids,
+            _("Salary Slips"), "diamond.salary.slip", touched_slips, month,
         )
 
-    def _open_documents_action(self, name, model, ids):
+    def _open_documents_action(self, name, model, records, month):
+        """Open billing documents for the period — include prior paid slips/invoices too."""
+        domain = [
+            ("period_month", "=", str(month)),
+            ("period_year", "=", self.period_year),
+            ("company_id", "=", self.company_id.id),
+            ("state", "!=", "cancelled"),
+        ]
+        if model == "diamond.salary.slip":
+            domain.append(("employee_id", "in", records.mapped("employee_id").ids))
+        else:
+            domain.append(("ledger_id", "in", records.mapped("ledger_id").ids))
         return {
             "type": "ir.actions.act_window",
             "name": name,
             "res_model": model,
             "view_mode": "list,form",
-            "domain": [("id", "in", ids)],
+            "domain": domain,
             "target": "current",
         }
 
@@ -185,24 +178,23 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
         entries = Entry.search(self._billable_party_domain(month))
         touched = Invoice
         lines_added = 0
-        blocked = self.env["diamond.ledger"]
 
         for ledger in entries.mapped("ledger_id"):
             ledger_entries = entries.filtered(lambda e: e.ledger_id == ledger)
             invoice, status = self._find_or_reopen_document(
                 "diamond.party.invoice", month, "ledger_id", ledger,
             )
-            if status == "paid":
-                blocked |= ledger
-                continue
             if status == "new":
-                invoice = Invoice.create({
+                vals = {
                     "company_id": self.company_id.id,
                     "ledger_id": ledger.id,
                     "period_month": str(month),
                     "period_year": self.period_year,
                     "date": self.invoice_date,
-                })
+                }
+                if self._has_closed_document("diamond.party.invoice", month, "ledger_id", ledger):
+                    vals["is_supplemental"] = True
+                invoice = Invoice.create(vals)
             touched |= invoice
 
             for entry in ledger_entries:
@@ -229,7 +221,7 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
                 entry.party_invoice_id = invoice.id
                 lines_added += 1
 
-        return touched, lines_added, blocked
+        return touched, lines_added
 
     def _generate_salary_slips(self, month):
         Entry = self.env["diamond.labour.entry"]
@@ -237,24 +229,23 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
         entries = Entry.search(self._billable_worker_domain(month))
         touched = Slip
         lines_added = 0
-        blocked = self.env["diamond.employee"]
 
         for employee in entries.mapped("employee_id"):
             emp_entries = entries.filtered(lambda e: e.employee_id == employee)
             slip, status = self._find_or_reopen_document(
                 "diamond.salary.slip", month, "employee_id", employee,
             )
-            if status == "paid":
-                blocked |= employee
-                continue
             if status == "new":
-                slip = Slip.create({
+                vals = {
                     "company_id": self.company_id.id,
                     "employee_id": employee.id,
                     "period_month": str(month),
                     "period_year": self.period_year,
                     "date": self.slip_date,
-                })
+                }
+                if self._has_closed_document("diamond.salary.slip", month, "employee_id", employee):
+                    vals["is_supplemental"] = True
+                slip = Slip.create(vals)
             touched |= slip
 
             for entry in emp_entries:
@@ -283,4 +274,4 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
 
             slip.action_apply_withdrawals()
 
-        return touched, lines_added, blocked
+        return touched, lines_added

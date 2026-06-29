@@ -79,6 +79,7 @@
                     <field name="ledger_id"/>
                     <field name="period_month"/>
                     <field name="period_year"/>
+                    <field name="is_supplemental" optional="show"/>
                     <field name="total_pcs"/>
                     <field name="total_amount" sum="Total"/>
                     <field name="state" widget="badge"
@@ -121,6 +122,7 @@
                             <group>
                                 <field name="period_month" readonly="state != 'draft'"/>
                                 <field name="period_year" readonly="state != 'draft'"/>
+                                <field name="is_supplemental" readonly="1"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
                             </group>
                         </group>
@@ -173,6 +175,7 @@
                     <field name="employee_id"/>
                     <field name="period_month"/>
                     <field name="period_year"/>
+                    <field name="is_supplemental" optional="show"/>
                     <field name="total_pcs"/>
                     <field name="gross_amount" optional="show"/>
                     <field name="withdrawal_deduction" optional="show"/>
@@ -220,6 +223,7 @@
                             <group>
                                 <field name="period_month" readonly="state != 'draft'"/>
                                 <field name="period_year" readonly="state != 'draft'"/>
+                                <field name="is_supplemental" readonly="1"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
                                 <field name="advance_carried_forward" readonly="1"
                                        invisible="advance_carried_forward == 0"/>

@@ -40,14 +40,11 @@ class DiamondPartyInvoice(models.Model):
     note = fields.Text(string="Note")
     payment_ref = fields.Char(string="Payment Reference")
     payment_date = fields.Date(string="Payment Date")
-
-    _sql_constraints = [
-        (
-            "party_period_uniq",
-            "unique(ledger_id, period_month, period_year, company_id)",
-            "An invoice already exists for this party and month.",
-        ),
-    ]
+    is_supplemental = fields.Boolean(
+        string="Supplemental",
+        default=False,
+        help="Additional invoice for the same month (e.g. after an earlier invoice was paid).",
+    )
 
     @api.depends("line_ids.pcs", "line_ids.amount")
     def _compute_totals(self):
