@@ -32,7 +32,7 @@ class DiamondEmployee(models.Model):
         "employee_id",
         "process_id",
         string="Capable Processes",
-        help="Processes this employee can work on. Leave empty to allow all processes.",
+        help="Processes this employee can work on. Must be set — employees with no processes assigned cannot be selected for any issue.",
         tracking=True,
     )
     withdrawal_ids = fields.One2many(
@@ -58,19 +58,17 @@ class DiamondEmployee(models.Model):
 
     @api.model
     def domain_for_process(self, process):
-        """Employees allowed for a process (empty process_ids = all processes)."""
+        """Employees explicitly assigned to the given process."""
         if not process:
             return []
         process_id = process.id if hasattr(process, "id") else process
-        return ["|", ("process_ids", "=", False), ("process_ids", "in", [process_id])]
+        return [("process_ids", "in", [process_id])]
 
     @api.model
     def check_capable_for_process(self, employee, process):
         if not employee or not process:
             return True
-        if not employee.process_ids:
-            return True
-        return process in employee.process_ids
+        return bool(employee.process_ids) and process in employee.process_ids
 
     @api.constrains("process_ids", "company_id")
     def _check_process_company(self):
