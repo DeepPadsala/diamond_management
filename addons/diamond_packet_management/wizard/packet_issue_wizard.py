@@ -164,14 +164,12 @@ class DiamondPacketIssueWizard(models.TransientModel):
                 if len(polish_employees) == 1 and polish_employees:
                     res.setdefault("employee_id", polish_employees.id)
             else:
-                pending_packets = packets.filtered("pending_factory_employee_id")
-                if pending_packets:
-                    pending_processes = pending_packets.mapped("pending_factory_process_id")
-                    if len(pending_processes) == 1 and pending_processes:
-                        res.setdefault("process_id", pending_processes.id)
-                    pending_employees = pending_packets.mapped("pending_factory_employee_id")
-                    if len(pending_employees) == 1 and pending_employees:
-                        res.setdefault("employee_id", pending_employees.id)
+                pending_packets = packets.filtered("pending_factory_ids")
+                if pending_packets and len(pending_packets) == 1:
+                    pending_rows = pending_packets.pending_factory_ids
+                    if len(pending_rows) == 1:
+                        res.setdefault("process_id", pending_rows.process_id.id)
+                        res.setdefault("employee_id", pending_rows.employee_id.id)
         return res
 
     # ─────────────────────── Validation ───────────────────────
@@ -234,13 +232,12 @@ class DiamondPacketIssueWizard(models.TransientModel):
         self.ensure_one()
         if self.mode != "factory" or not self.process_id or not self.employee_id:
             return self.env["diamond.packet"]
-        return self.packet_ids.filtered(
-            lambda p: (
-                p.pending_factory_employee_id
-                and p.pending_factory_process_id == self.process_id
-                and p.pending_factory_employee_id != self.employee_id
-            )
-        )
+        mismatched = self.env["diamond.packet"]
+        for packet in self.packet_ids:
+            pending = packet._get_pending_factory(self.process_id)
+            if pending and pending.employee_id != self.employee_id:
+                mismatched |= packet
+        return mismatched
 
     def _employee_mismatch_packets(self):
         """All packets that should trigger the employee warning."""
@@ -258,16 +255,13 @@ class DiamondPacketIssueWizard(models.TransientModel):
             return _(
                 "improvement return — previously polished by %(expected)s"
             ) % {"expected": packet.improvement_polish_employee_id.display_name}
-        if (
-            packet.pending_factory_employee_id
-            and packet.pending_factory_process_id == self.process_id
-            and packet.pending_factory_employee_id != self.employee_id
-        ):
+        pending = packet._get_pending_factory(self.process_id)
+        if pending and pending.employee_id != self.employee_id:
             return _(
                 "un-processed %(process)s — was working: %(expected)s"
             ) % {
-                "process": packet.pending_factory_process_id.display_name,
-                "expected": packet.pending_factory_employee_id.display_name,
+                "process": pending.process_id.display_name,
+                "expected": pending.employee_id.display_name,
             }
         return ""
 

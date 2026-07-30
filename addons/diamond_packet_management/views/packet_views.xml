@@ -100,11 +100,15 @@
                                 <field name="current_process_id"/>
                             </group>
                             <group string="Pending Factory Process"
-                                   invisible="not pending_factory_employee_id">
-                                <field name="pending_factory_employee_id" readonly="1"/>
-                                <field name="pending_factory_process_id" readonly="1"/>
-                                <field name="pending_factory_issue_cts" readonly="1"/>
-                                <field name="pending_factory_labour_weight_cts" readonly="1"/>
+                                   invisible="not pending_factory_ids">
+                                <field name="pending_factory_ids" nolabel="1" readonly="1" colspan="2">
+                                    <list>
+                                        <field name="process_id"/>
+                                        <field name="employee_id"/>
+                                        <field name="issue_cts"/>
+                                        <field name="labour_weight_cts"/>
+                                    </list>
+                                </field>
                             </group>
                             <group string="Improvement Return"
                                    invisible="not improvement_return">

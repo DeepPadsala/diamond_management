@@ -28,6 +28,7 @@ from . import salary_slip
 from . import master_price
 from . import master_product
 from . import packet
+from . import packet_pending_factory
 from . import packet_transaction_rollback
 from . import packet_history
 from . import inward

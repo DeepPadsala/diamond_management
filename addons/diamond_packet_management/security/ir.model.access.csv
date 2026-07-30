@@ -35,6 +35,8 @@ access_diamond_product_user,diamond.product user,model_diamond_product,group_dia
 access_diamond_product_mgr,diamond.product manager,model_diamond_product,group_diamond_manager,1,1,1,1
 access_diamond_packet_user,diamond.packet user,model_diamond_packet,group_diamond_user,1,1,1,0
 access_diamond_packet_mgr,diamond.packet manager,model_diamond_packet,group_diamond_manager,1,1,1,1
+access_diamond_packet_pending_factory_user,diamond.packet.pending.factory user,model_diamond_packet_pending_factory,group_diamond_user,1,1,1,1
+access_diamond_packet_pending_factory_mgr,diamond.packet.pending.factory manager,model_diamond_packet_pending_factory,group_diamond_manager,1,1,1,1
 access_diamond_packet_history_user,diamond.packet.history user,model_diamond_packet_history,group_diamond_user,1,0,0,0
 access_diamond_packet_history_mgr,diamond.packet.history manager,model_diamond_packet_history,group_diamond_manager,1,1,1,0
 access_diamond_inward_user,diamond.inward user,model_diamond_inward,group_diamond_user,1,1,1,0

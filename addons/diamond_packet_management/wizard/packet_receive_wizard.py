@@ -359,8 +359,11 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
     @api.depends(
         "wizard_id.mode", "wizard_id.employee_id", "wizard_id.process_id",
         "packet_id", "old_cts",
-        "packet_id.pending_factory_labour_weight_cts",
-        "packet_id.pending_factory_issue_cts",
+        "packet_id.pending_factory_ids",
+        "packet_id.pending_factory_ids.employee_id",
+        "packet_id.pending_factory_ids.process_id",
+        "packet_id.pending_factory_ids.labour_weight_cts",
+        "packet_id.pending_factory_ids.issue_cts",
         "packet_id.current_factory_labour_weight_cts",
     )
     def _compute_labour_weight_preview(self):
@@ -371,18 +374,16 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
             if not wizard or wizard.mode != "factory" or not packet:
                 continue
             segment_issue = rec.old_cts or 0.0
-            resuming = (
-                packet.pending_factory_employee_id == wizard.employee_id
-                and packet.pending_factory_process_id == wizard.process_id
-                and (
-                    packet.pending_factory_labour_weight_cts
-                    or packet.pending_factory_issue_cts
-                )
+            pending = packet._get_pending_factory(wizard.process_id) if wizard.process_id else False
+            resuming = bool(
+                pending
+                and pending.employee_id == wizard.employee_id
+                and (pending.labour_weight_cts or pending.issue_cts)
             )
             if resuming:
                 rec.labour_weight_cts = (
-                    packet.pending_factory_labour_weight_cts
-                    or packet.pending_factory_issue_cts
+                    pending.labour_weight_cts
+                    or pending.issue_cts
                     or segment_issue
                 )
             else:
@@ -392,6 +393,11 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
         "wizard_id.process_id", "wizard_id.mode", "wizard_id.company_id",
         "wizard_id.employee_id", "packet_id", "new_pcs", "new_cts", "loss_cts", "unprocessed",
         "labour_weight_cts",
+        "packet_id.pending_factory_ids",
+        "packet_id.pending_factory_ids.employee_id",
+        "packet_id.pending_factory_ids.process_id",
+        "packet_id.pending_factory_ids.labour_weight_cts",
+        "packet_id.pending_factory_ids.issue_cts",
     )
     def _compute_labour_preview(self):
         calc = self.env["diamond.labour.calculator"]
@@ -406,22 +412,20 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
 
             packet = rec.packet_id
             segment_issue = rec.old_cts or 0.0
-            resuming = (
+            pending = packet._get_pending_factory(wizard.process_id)
+            resuming = bool(
                 wizard.mode == "factory"
-                and packet.pending_factory_employee_id == wizard.employee_id
-                and packet.pending_factory_process_id == wizard.process_id
-                and (
-                    packet.pending_factory_labour_weight_cts
-                    or packet.pending_factory_issue_cts
-                )
+                and pending
+                and pending.employee_id == wizard.employee_id
+                and (pending.labour_weight_cts or pending.issue_cts)
             )
             if resuming:
                 labour_weight = (
-                    packet.pending_factory_labour_weight_cts
-                    or packet.pending_factory_issue_cts
+                    pending.labour_weight_cts
+                    or pending.issue_cts
                     or segment_issue
                 )
-                session_issue = packet.pending_factory_issue_cts or segment_issue
+                session_issue = pending.issue_cts or segment_issue
                 labour_loss = max(labour_weight - (rec.new_cts or 0.0), 0.0)
             else:
                 labour_weight = packet.current_factory_labour_weight_cts or segment_issue

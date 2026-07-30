@@ -1,13 +1,9 @@
-def post_init_hook(env):
-    """Backfill default masters and per-company sequences for all companies."""
-    env["diamond.company.defaults"].sudo().create_for_companies(
-        env["res.company"].sudo().search([])
-    )
-    _migrate_legacy_pending_factory(env)
+from odoo import SUPERUSER_ID, api
 
 
-def _migrate_legacy_pending_factory(env):
-    """Copy single-slot pending_* fields into pending_factory_ids when empty."""
+def migrate(cr, version):
+    """Move legacy single-slot pending factory fields into per-process rows."""
+    env = api.Environment(cr, SUPERUSER_ID, {})
     Packet = env["diamond.packet"].sudo()
     Pending = env["diamond.packet.pending.factory"].sudo()
     packets = Packet.search([
@@ -16,7 +12,7 @@ def _migrate_legacy_pending_factory(env):
     ])
     for packet in packets:
         if packet.pending_factory_ids.filtered(
-            lambda p: p.process_id == packet.pending_factory_process_id
+            lambda p, process=packet.pending_factory_process_id: p.process_id == process
         ):
             continue
         Pending.create({

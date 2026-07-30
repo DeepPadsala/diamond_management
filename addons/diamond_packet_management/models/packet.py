@@ -116,23 +116,26 @@ class DiamondPacket(models.Model):
     current_employee_id = fields.Many2one("diamond.employee", string="Current Holder (Employee)", tracking=True)
     current_process_id = fields.Many2one("diamond.process", string="Current Process", tracking=True)
 
-    # Suspended factory process (receive with Un-Processed = process not finished yet)
+    # Suspended factory processes (Un-Processed receive — one row per process).
+    pending_factory_ids = fields.One2many(
+        "diamond.packet.pending.factory", "packet_id", string="Pending Factory Processes",
+    )
+    # Convenience mirrors of pending rows (kept in sync by helpers; first row for display).
     pending_factory_employee_id = fields.Many2one(
         "diamond.employee", string="Pending Factory Worker", index=True,
-        help="Worker who still has an unfinished factory process on this packet.",
+        help="Worker on an unfinished factory process (see Pending Factory Processes).",
     )
     pending_factory_process_id = fields.Many2one(
         "diamond.process", string="Pending Factory Process", index=True,
-        help="Factory process that was interrupted and must be completed later.",
+        help="Unfinished factory process (see Pending Factory Processes).",
     )
     pending_factory_issue_cts = fields.Float(
         string="Pending Process Start Weight", digits=(12, 4),
-        help="Packet weight when the pending factory process was first issued. "
-             "Used for cumulative salary/invoice on final completion.",
+        help="Packet weight when the pending factory process was first issued.",
     )
     pending_factory_labour_weight_cts = fields.Float(
         string="Pending Labour Weight", digits=(12, 4),
-        help="Original labour weight for an unfinished factory process (survives un-processed receive).",
+        help="Original labour weight for an unfinished factory process.",
     )
 
     # Party returned an outward packet for improvement (re-polish).
@@ -228,6 +231,61 @@ class DiamondPacket(models.Model):
     def _compute_child_count(self):
         for rec in self:
             rec.child_count = len(rec.child_packet_ids)
+
+    def _get_pending_factory(self, process):
+        """Return the pending factory row for ``process``, if any."""
+        self.ensure_one()
+        if not process:
+            return self.env["diamond.packet.pending.factory"]
+        process_id = process.id if hasattr(process, "id") else process
+        return self.pending_factory_ids.filtered(lambda p: p.process_id.id == process_id)[:1]
+
+    def _sync_pending_factory_legacy_fields(self):
+        """Keep single-slot pending_* fields in sync with pending_factory_ids."""
+        for packet in self:
+            pending = packet.pending_factory_ids[:1]
+            packet.with_context(skip_packet_auto_history=True).write({
+                "pending_factory_employee_id": pending.employee_id.id if pending else False,
+                "pending_factory_process_id": pending.process_id.id if pending else False,
+                "pending_factory_issue_cts": pending.issue_cts if pending else 0.0,
+                "pending_factory_labour_weight_cts": pending.labour_weight_cts if pending else 0.0,
+            })
+
+    def _upsert_pending_factory(self, employee, process, issue_cts, labour_weight_cts):
+        """Create or update the pending row for this process (does not touch other processes)."""
+        self.ensure_one()
+        Pending = self.env["diamond.packet.pending.factory"]
+        existing = self._get_pending_factory(process)
+        vals = {
+            "employee_id": employee.id,
+            "process_id": process.id,
+            "issue_cts": issue_cts or 0.0,
+            "labour_weight_cts": labour_weight_cts or 0.0,
+        }
+        if existing:
+            if existing.employee_id == employee:
+                # Same worker continuing — keep original process-start weights.
+                existing.write({
+                    "issue_cts": existing.issue_cts or issue_cts or 0.0,
+                    "labour_weight_cts": existing.labour_weight_cts or labour_weight_cts or 0.0,
+                })
+            else:
+                # Different worker took over after warning — replace pending row.
+                existing.write(vals)
+        else:
+            vals["packet_id"] = self.id
+            Pending.create(vals)
+        self._sync_pending_factory_legacy_fields()
+        return self._get_pending_factory(process)
+
+    def _clear_pending_factory(self, process=None):
+        """Clear pending for one process, or all if ``process`` is empty."""
+        for packet in self:
+            if process:
+                packet._get_pending_factory(process).unlink()
+            else:
+                packet.pending_factory_ids.unlink()
+            packet._sync_pending_factory_legacy_fields()
 
     def _compute_days_in_stock(self):
         now = fields.Datetime.now()

@@ -173,29 +173,21 @@ class DiamondPacket(models.Model):
         packet = self
         line = tx["line"]
         doc = tx["doc"]
-        has_pending = (
-            packet.pending_factory_employee_id == doc.employee_id
-            and packet.pending_factory_process_id == doc.process_id
-            and (
-                packet.pending_factory_issue_cts
-                or packet.pending_factory_labour_weight_cts
-            )
+        pending = packet._get_pending_factory(doc.process_id)
+        has_pending = bool(
+            pending
+            and pending.employee_id == doc.employee_id
+            and (pending.issue_cts or pending.labour_weight_cts)
         )
-        vals = {
+        packet.write({
             "state": "in_stock",
             "current_location": "office",
             "current_employee_id": False,
             "current_process_id": False,
             "current_factory_labour_weight_cts": 0.0,
-        }
+        })
         if not has_pending:
-            vals.update({
-                "pending_factory_employee_id": False,
-                "pending_factory_process_id": False,
-                "pending_factory_issue_cts": 0.0,
-                "pending_factory_labour_weight_cts": 0.0,
-            })
-        packet.write(vals)
+            packet._clear_pending_factory(doc.process_id)
         self._cleanup_transaction_line(line, doc)
 
     def _rollback_factory_receive_unprocessed(self, tx):
@@ -212,11 +204,8 @@ class DiamondPacket(models.Model):
             "current_factory_labour_weight_cts": labour_weight,
             "rdy_pcs": line.pcs or packet.rdy_pcs,
             "rdy_cts": issue_cts,
-            "pending_factory_employee_id": False,
-            "pending_factory_process_id": False,
-            "pending_factory_issue_cts": 0.0,
-            "pending_factory_labour_weight_cts": 0.0,
         })
+        packet._clear_pending_factory(doc.process_id)
         self._cleanup_transaction_line(line, doc)
 
     def _rollback_factory_receive_complete(self, tx):
@@ -233,34 +222,24 @@ class DiamondPacket(models.Model):
                 and line.labour_weight_cts > (line.issue_cts or 0.0)
             )
         )
+        packet.write({
+            "state": "in_factory",
+            "current_location": "factory",
+            "current_employee_id": doc.employee_id.id,
+            "current_process_id": doc.process_id.id,
+            "current_factory_labour_weight_cts": labour_weight,
+            "rdy_pcs": line.pcs or packet.rdy_pcs,
+            "rdy_cts": issue_cts,
+        })
         if resuming:
-            packet.write({
-                "state": "in_factory",
-                "current_location": "factory",
-                "current_employee_id": doc.employee_id.id,
-                "current_process_id": doc.process_id.id,
-                "current_factory_labour_weight_cts": labour_weight,
-                "pending_factory_employee_id": doc.employee_id.id,
-                "pending_factory_process_id": doc.process_id.id,
-                "pending_factory_issue_cts": line.session_issue_cts or issue_cts,
-                "pending_factory_labour_weight_cts": labour_weight,
-                "rdy_pcs": line.pcs or packet.rdy_pcs,
-                "rdy_cts": issue_cts,
-            })
+            packet._upsert_pending_factory(
+                doc.employee_id,
+                doc.process_id,
+                line.session_issue_cts or issue_cts,
+                labour_weight,
+            )
         else:
-            packet.write({
-                "state": "in_factory",
-                "current_location": "factory",
-                "current_employee_id": doc.employee_id.id,
-                "current_process_id": doc.process_id.id,
-                "current_factory_labour_weight_cts": labour_weight,
-                "pending_factory_employee_id": False,
-                "pending_factory_process_id": False,
-                "pending_factory_issue_cts": 0.0,
-                "pending_factory_labour_weight_cts": 0.0,
-                "rdy_pcs": line.pcs or packet.rdy_pcs,
-                "rdy_cts": issue_cts,
-            })
+            packet._clear_pending_factory(doc.process_id)
         self._cleanup_transaction_line(line, doc)
 
     def _rollback_factory_receive(self, tx):

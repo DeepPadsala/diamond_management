@@ -20,21 +20,20 @@ class DiamondFactoryIssue(models.Model):
         return super().create(vals_list)
 
     def _is_resuming_pending(self, packet, employee, process):
-        return (
-            packet.pending_factory_process_id == process
-            and packet.pending_factory_employee_id == employee
-            and (
-                packet.pending_factory_labour_weight_cts
-                or packet.pending_factory_issue_cts
-            )
+        pending = packet._get_pending_factory(process)
+        return bool(
+            pending
+            and pending.employee_id == employee
+            and (pending.labour_weight_cts or pending.issue_cts)
         )
 
     def _resolve_labour_weight(self, packet, employee, process, issue_cts):
         """Labour weight for rate lookup — kept from pending cycle when resuming."""
         if self._is_resuming_pending(packet, employee, process):
+            pending = packet._get_pending_factory(process)
             return (
-                packet.pending_factory_labour_weight_cts
-                or packet.pending_factory_issue_cts
+                pending.labour_weight_cts
+                or pending.issue_cts
                 or issue_cts
             )
         return issue_cts
@@ -134,13 +133,11 @@ class DiamondFactoryReceive(models.Model):
         return packet.current_factory_labour_weight_cts or segment_issue_cts
 
     def _is_resuming_pending(self, packet, employee, process):
-        return (
-            packet.pending_factory_process_id == process
-            and packet.pending_factory_employee_id == employee
-            and (
-                packet.pending_factory_labour_weight_cts
-                or packet.pending_factory_issue_cts
-            )
+        pending = packet._get_pending_factory(process)
+        return bool(
+            pending
+            and pending.employee_id == employee
+            and (pending.labour_weight_cts or pending.issue_cts)
         )
 
     def _apply_factory_receive_line(self, rec, line):
@@ -160,24 +157,25 @@ class DiamondFactoryReceive(models.Model):
                 "current_location": "office",
                 "rdy_pcs": line.pcs or packet.rdy_pcs,
                 "rdy_cts": line.cts or packet.rdy_cts,
-                "pending_factory_employee_id": rec.employee_id.id,
-                "pending_factory_process_id": rec.process_id.id,
-                "pending_factory_issue_cts": segment_issue_cts,
-                "pending_factory_labour_weight_cts": segment_labour_weight,
                 "current_factory_labour_weight_cts": 0.0,
                 "current_employee_id": False,
                 "current_process_id": False,
             })
+            # Upsert only this process — other unfinished processes stay pending.
+            packet._upsert_pending_factory(
+                rec.employee_id, rec.process_id, segment_issue_cts, segment_labour_weight,
+            )
             note = _("Factory Receive %s (un-processed)") % rec.name
         else:
+            pending = packet._get_pending_factory(rec.process_id)
             resuming = self._is_resuming_pending(packet, rec.employee_id, rec.process_id)
             if resuming:
                 labour_weight = (
-                    packet.pending_factory_labour_weight_cts
-                    or packet.pending_factory_issue_cts
+                    pending.labour_weight_cts
+                    or pending.issue_cts
                     or segment_issue_cts
                 )
-                session_issue_cts = packet.pending_factory_issue_cts or segment_issue_cts
+                session_issue_cts = pending.issue_cts or segment_issue_cts
                 labour_loss_cts = max(labour_weight - (line.cts or 0.0), 0.0)
             else:
                 labour_weight = segment_labour_weight
@@ -200,11 +198,10 @@ class DiamondFactoryReceive(models.Model):
                 "current_employee_id": False,
                 "current_process_id": False,
                 "current_factory_labour_weight_cts": 0.0,
-                "pending_factory_employee_id": False,
-                "pending_factory_process_id": False,
-                "pending_factory_issue_cts": 0.0,
-                "pending_factory_labour_weight_cts": 0.0,
             })
+            # Only clear pending for THIS process — e.g. completing BLK must not
+            # wipe an unfinished PLS pending worker.
+            packet._clear_pending_factory(rec.process_id)
             note = _("Factory Receive %s") % rec.name
 
         packet._log_history(
