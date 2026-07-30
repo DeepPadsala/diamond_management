@@ -21,20 +21,20 @@ class DiamondRollbackTestCommon(TransactionCase):
         cls.party = cls.env["diamond.ledger"].create({
             "code": "RBTPARTY",
             "name": "Rollback Test Party",
-            "party_type": "customer",
+            "party_type_ids": [(6, 0, [cls.env.ref("diamond_packet_management.party_type_customer").id])],
             "account_group_id": cls.acct_debtor.id,
             "barcode": "RBTPARTY",
         })
         cls.jobworker = cls.env["diamond.ledger"].create({
             "code": "RBTJOB",
             "name": "Rollback Jobworker",
-            "party_type": "jobworker",
+            "party_type_ids": [(6, 0, [cls.env.ref("diamond_packet_management.party_type_jobworker").id])],
             "account_group_id": cls.acct_jobworker.id,
         })
         cls.hpht_vendor = cls.env["diamond.ledger"].create({
             "code": "RBTHPHT",
             "name": "Rollback HPHT Vendor",
-            "party_type": "hpht_vendor",
+            "party_type_ids": [(6, 0, [cls.env.ref("diamond_packet_management.party_type_hpht_vendor").id])],
             "account_group_id": cls.acct_debtor.id,
         })
         cls.employee = cls.env["diamond.employee"].create({

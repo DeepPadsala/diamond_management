@@ -25,6 +25,8 @@ access_diamond_account_group_user,diamond.account.group user,model_diamond_accou
 access_diamond_account_group_mgr,diamond.account.group manager,model_diamond_account_group,group_diamond_manager,1,1,1,1
 access_diamond_ledger_user,diamond.ledger user,model_diamond_ledger,group_diamond_user,1,1,1,0
 access_diamond_ledger_mgr,diamond.ledger manager,model_diamond_ledger,group_diamond_manager,1,1,1,1
+access_diamond_party_type_user,diamond.party.type user,model_diamond_party_type,group_diamond_user,1,0,0,0
+access_diamond_party_type_mgr,diamond.party.type manager,model_diamond_party_type,group_diamond_manager,1,1,1,1
 access_diamond_party_labour_user,diamond.party.labour user,model_diamond_party_labour,group_diamond_user,1,0,0,0
 access_diamond_party_labour_mgr,diamond.party.labour manager,model_diamond_party_labour,group_diamond_manager,1,1,1,1
 access_diamond_worker_labour_user,diamond.worker.labour user,model_diamond_worker_labour,group_diamond_user,1,0,0,0

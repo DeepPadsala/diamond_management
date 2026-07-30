@@ -17,6 +17,7 @@ from . import master_process
 from . import master_employee
 from . import master_account_group
 from . import master_ledger
+from . import master_party_type
 from . import labour_calculator
 from . import master_party_labour
 from . import master_worker_labour

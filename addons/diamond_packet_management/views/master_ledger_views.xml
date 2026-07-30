@@ -32,7 +32,8 @@
                 <list string="Parties / Ledgers">
                     <field name="code"/>
                     <field name="name"/>
-                    <field name="party_type"/>
+                    <field name="party_type_ids" widget="many2many_tags" optional="show"/>
+                    <field name="party_type_display" optional="hide"/>
                     <field name="account_group_id"/>
                     <field name="barcode"/>
                     <field name="city"/>
@@ -56,7 +57,9 @@
                         </div>
                         <group>
                             <group>
-                                <field name="party_type"/>
+                                <field name="party_type_ids" widget="many2many_tags"
+                                       options="{'no_create_edit': True}"
+                                       placeholder="Customer, Jobworker, Lab, …"/>
                                 <field name="account_group_id"/>
                                 <field name="barcode"/>
                                 <field name="opening_balance"/>
@@ -93,12 +96,13 @@
                     <field name="code"/>
                     <field name="barcode"/>
                     <field name="phone"/>
-                    <filter name="customers" string="Customers" domain="[('party_type','=','customer')]"/>
-                    <filter name="suppliers" string="Suppliers" domain="[('party_type','=','supplier')]"/>
-                    <filter name="jobworkers" string="Jobworkers" domain="[('party_type','=','jobworker')]"/>
-                    <filter name="hpht" string="HPHT Vendors" domain="[('party_type','=','hpht_vendor')]"/>
+                    <field name="party_type_ids"/>
+                    <filter name="customers" string="Customers" domain="[('party_type_ids.code','=','customer')]"/>
+                    <filter name="suppliers" string="Suppliers" domain="[('party_type_ids.code','=','supplier')]"/>
+                    <filter name="jobworkers" string="Jobworkers" domain="[('party_type_ids.code','=','jobworker')]"/>
+                    <filter name="hpht" string="HPHT Vendors" domain="[('party_type_ids.code','=','hpht_vendor')]"/>
+                    <filter name="lab" string="Lab" domain="[('party_type_ids.code','=','lab')]"/>
                     <group expand="0" string="Group By">
-                        <filter name="grp_type" string="Party Type" context="{'group_by':'party_type'}"/>
                         <filter name="grp_acct" string="Account Group" context="{'group_by':'account_group_id'}"/>
                     </group>
                 </search>

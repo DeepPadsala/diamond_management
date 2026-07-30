@@ -47,6 +47,7 @@
                                    string="Party / Vendor"
                                    invisible="not show_party"
                                    required="is_party_required"
+                                   domain="ledger_domain"
                                    options="{'no_create_edit': True}"/>
                             <field name="employee_id"
                                    required="is_employee_required"

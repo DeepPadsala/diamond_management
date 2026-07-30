@@ -88,9 +88,9 @@ class DiamondPacketIssueWizard(models.TransientModel):
     def _compute_ledger_domain(self):
         for rec in self:
             if rec.mode == "jobwork":
-                rec.ledger_domain = "[('party_type', '=', 'jobworker')]"
+                rec.ledger_domain = "[('party_type_ids.code', '=', 'jobworker')]"
             elif rec.mode == "hpht":
-                rec.ledger_domain = "[('party_type', '=', 'hpht_vendor')]"
+                rec.ledger_domain = "[('party_type_ids.code', '=', 'hpht_vendor')]"
             else:
                 rec.ledger_domain = "[]"
 
@@ -123,10 +123,10 @@ class DiamondPacketIssueWizard(models.TransientModel):
     def _onchange_mode(self):
         """Reset incompatible fields when mode changes."""
         if self.mode == "jobwork":
-            if self.ledger_id and self.ledger_id.party_type != "jobworker":
+            if self.ledger_id and not self.ledger_id.has_party_type("jobworker"):
                 self.ledger_id = False
         elif self.mode == "hpht":
-            if self.ledger_id and self.ledger_id.party_type != "hpht_vendor":
+            if self.ledger_id and not self.ledger_id.has_party_type("hpht_vendor"):
                 self.ledger_id = False
         else:
             self.ledger_id = False
@@ -196,9 +196,9 @@ class DiamondPacketIssueWizard(models.TransientModel):
                 "employee": self.employee_id.display_name,
                 "process": self.process_id.display_name,
             })
-        if self.mode == "jobwork" and self.ledger_id and self.ledger_id.party_type != "jobworker":
+        if self.mode == "jobwork" and self.ledger_id and not self.ledger_id.has_party_type("jobworker"):
             raise UserError(_("Selected party is not flagged as a Jobworker."))
-        if self.mode == "hpht" and self.ledger_id and self.ledger_id.party_type != "hpht_vendor":
+        if self.mode == "hpht" and self.ledger_id and not self.ledger_id.has_party_type("hpht_vendor"):
             raise UserError(_("Selected party is not flagged as an HPHT Vendor."))
 
     def _improvement_employee_mismatch(self):
