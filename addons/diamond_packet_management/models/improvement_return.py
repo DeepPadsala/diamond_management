@@ -62,12 +62,10 @@ class DiamondImprovementReturn(models.Model):
                     raise UserError(_(
                         "Packet %(packet)s is not outward (current state: %(state)s)."
                     ) % {"packet": packet.packet_no, "state": packet.state})
-                polish_employee = packet._find_last_polish_employee()
                 packet.write({
                     "state": "in_stock",
                     "current_location": "office",
                     "improvement_return": True,
-                    "improvement_polish_employee_id": polish_employee.id if polish_employee else False,
                     "current_holder_id": rec.ledger_id.id,
                     "current_employee_id": False,
                     "current_process_id": False,
@@ -76,7 +74,6 @@ class DiamondImprovementReturn(models.Model):
                     action="improvement_return",
                     note=_("Improvement return via %s") % rec.name,
                     party_id=rec.ledger_id.id,
-                    employee_id=polish_employee.id if polish_employee else False,
                 )
             rec.state = "confirmed"
         return True

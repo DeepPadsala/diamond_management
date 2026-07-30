@@ -113,7 +113,6 @@
                             <group string="Improvement Return"
                                    invisible="not improvement_return">
                                 <field name="improvement_return" readonly="1"/>
-                                <field name="improvement_polish_employee_id" readonly="1"/>
                             </group>
                             <group string="Parent / Child Packets">
                                 <field name="parent_packet_id" readonly="1"/>

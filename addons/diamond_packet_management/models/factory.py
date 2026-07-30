@@ -248,7 +248,6 @@ class DiamondFactoryReceive(models.Model):
                 )
                 improvement_lines.mapped("packet_id").write({
                     "improvement_return": False,
-                    "improvement_polish_employee_id": False,
                 })
             rec.state = "confirmed"
         if len(self) == 1:

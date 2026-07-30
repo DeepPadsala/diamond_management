@@ -156,14 +156,7 @@ class DiamondPacketIssueWizard(models.TransientModel):
         if active_model == "diamond.packet" and active_ids:
             packets = self.env["diamond.packet"].browse(active_ids)
             improvement_packets = packets.filtered("improvement_return")
-            if improvement_packets:
-                polish_process = self.env["diamond.packet"]._get_polish_process()
-                if polish_process:
-                    res.setdefault("process_id", polish_process.id)
-                polish_employees = improvement_packets.mapped("improvement_polish_employee_id")
-                if len(polish_employees) == 1 and polish_employees:
-                    res.setdefault("employee_id", polish_employees.id)
-            else:
+            if not improvement_packets:
                 pending_packets = packets.filtered("pending_factory_ids")
                 if pending_packets and len(pending_packets) == 1:
                     pending_rows = pending_packets.pending_factory_ids
@@ -208,27 +201,21 @@ class DiamondPacketIssueWizard(models.TransientModel):
         if self.mode == "hpht" and self.ledger_id and self.ledger_id.party_type != "hpht_vendor":
             raise UserError(_("Selected party is not flagged as an HPHT Vendor."))
 
-    def _is_polish_process(self):
-        self.ensure_one()
-        if not self.process_id:
-            return False
-        return self.process_id.code == "POL"
-
     def _improvement_employee_mismatch(self):
-        """Improvement-return packets whose polish worker differs from selection."""
+        """Improvement-return packets: selected employee != last worker for process."""
         self.ensure_one()
-        if self.mode != "factory" or not self._is_polish_process() or not self.employee_id:
+        if self.mode != "factory" or not self.process_id or not self.employee_id:
             return self.env["diamond.packet"]
-        return self.packet_ids.filtered(
-            lambda p: (
-                p.improvement_return
-                and p.improvement_polish_employee_id
-                and p.improvement_polish_employee_id != self.employee_id
-            )
-        )
+        mismatched = self.env["diamond.packet"]
+        for packet in self.packet_ids.filtered("improvement_return"):
+            # History for the selected process only (any process: PLS, BLK, …).
+            prior = packet._find_last_factory_employee(self.process_id)
+            if prior and prior != self.employee_id:
+                mismatched |= packet
+        return mismatched
 
     def _pending_factory_employee_mismatch(self):
-        """Un-processed packets whose pending worker differs from selection."""
+        """Un-processed packets whose pending worker differs from selection (any process)."""
         self.ensure_one()
         if self.mode != "factory" or not self.process_id or not self.employee_id:
             return self.env["diamond.packet"]
@@ -247,14 +234,15 @@ class DiamondPacketIssueWizard(models.TransientModel):
     def _packet_mismatch_label(self, packet):
         """Human-readable reason why this packet expects another worker."""
         self.ensure_one()
-        if (
-            packet.improvement_return
-            and packet.improvement_polish_employee_id
-            and packet.improvement_polish_employee_id != self.employee_id
-        ):
-            return _(
-                "improvement return — previously polished by %(expected)s"
-            ) % {"expected": packet.improvement_polish_employee_id.display_name}
+        if packet.improvement_return and self.process_id:
+            prior = packet._find_last_factory_employee(self.process_id)
+            if prior and prior != self.employee_id:
+                return _(
+                    "improvement return — %(process)s previously worked by %(expected)s"
+                ) % {
+                    "process": self.process_id.display_name,
+                    "expected": prior.display_name,
+                }
         pending = packet._get_pending_factory(self.process_id)
         if pending and pending.employee_id != self.employee_id:
             return _(
