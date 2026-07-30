@@ -1,6 +1,6 @@
 {
     "name": "Diamond Packet Management",
-    "version": "18.0.1.23.0",
+    "version": "18.0.1.24.0",
     "summary": "Diamond packet lifecycle: inward, process / jobwork / factory / HPHT, outward — multi-company, barcode-ready.",
     "description": """
 Diamond Packet Management

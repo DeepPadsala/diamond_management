@@ -317,6 +317,9 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
         "diamond.packet.receive.wizard.child.line", "wizard_line_id",
         string="Child Packets",
     )
+    child_count = fields.Integer(
+        string="Children", compute="_compute_child_count",
+    )
     labour_weight_cts = fields.Float(
         string="Labour Weight", digits=(12, 4),
         compute="_compute_labour_weight_preview",
@@ -329,6 +332,30 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
     party_labour_amount = fields.Float(string="Party Labour", digits=(14, 2), compute="_compute_labour_preview")
     worker_labour_amount = fields.Float(string="Worker Labour", digits=(14, 2), compute="_compute_labour_preview")
     note = fields.Char(string="Note")
+
+    @api.depends("child_line_ids")
+    def _compute_child_count(self):
+        for rec in self:
+            rec.child_count = len(rec.child_line_ids)
+
+    def action_edit_child_packets(self):
+        """Open line form so user can add child pcs/cts (editable list hides nested O2M)."""
+        self.ensure_one()
+        if not self.split_receive:
+            raise UserError(_("Tick 'Split into Children' first."))
+        view = self.env.ref(
+            "diamond_packet_management.view_packet_receive_wizard_line_split_form",
+            raise_if_not_found=False,
+        )
+        return {
+            "name": _("Child Packets — %s") % (self.packet_id.barcode or self.packet_id.display_name),
+            "type": "ir.actions.act_window",
+            "res_model": "diamond.packet.receive.wizard.line",
+            "res_id": self.id,
+            "view_mode": "form",
+            "views": [(view.id, "form")] if view else [(False, "form")],
+            "target": "new",
+        }
 
     @api.depends("old_cts", "new_cts", "child_line_ids.cts", "split_receive")
     def _compute_loss(self):
