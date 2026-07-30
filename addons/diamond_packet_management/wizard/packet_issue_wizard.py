@@ -74,6 +74,10 @@ class DiamondPacketIssueWizard(models.TransientModel):
     show_party = fields.Boolean(compute="_compute_flags")
     show_expected_return = fields.Boolean(compute="_compute_flags")
 
+    # Improvement-return polish employee mismatch warning
+    show_employee_warning = fields.Boolean(default=False)
+    employee_warning_message = fields.Text(readonly=True)
+
     # ── summary ──
     packet_count = fields.Integer(compute="_compute_summary")
     total_pcs = fields.Integer(compute="_compute_summary")
@@ -149,6 +153,16 @@ class DiamondPacketIssueWizard(models.TransientModel):
                 res["company_id"] = packets[0].company_id.id
         if ctx.get("default_issue_mode"):
             res["mode"] = ctx["default_issue_mode"]
+        if active_model == "diamond.packet" and active_ids:
+            packets = self.env["diamond.packet"].browse(active_ids)
+            improvement_packets = packets.filtered("improvement_return")
+            if improvement_packets:
+                polish_process = self.env["diamond.packet"]._get_polish_process()
+                if polish_process:
+                    res.setdefault("process_id", polish_process.id)
+                polish_employees = improvement_packets.mapped("improvement_polish_employee_id")
+                if len(polish_employees) == 1 and polish_employees:
+                    res.setdefault("employee_id", polish_employees.id)
         return res
 
     # ─────────────────────── Validation ───────────────────────
@@ -187,6 +201,66 @@ class DiamondPacketIssueWizard(models.TransientModel):
         if self.mode == "hpht" and self.ledger_id and self.ledger_id.party_type != "hpht_vendor":
             raise UserError(_("Selected party is not flagged as an HPHT Vendor."))
 
+    def _is_polish_process(self):
+        self.ensure_one()
+        if not self.process_id:
+            return False
+        return self.process_id.code == "POL"
+
+    def _improvement_employee_mismatch(self):
+        """Return improvement packets whose polish worker differs from selection."""
+        self.ensure_one()
+        if self.mode != "factory" or not self._is_polish_process() or not self.employee_id:
+            return self.env["diamond.packet"]
+        return self.packet_ids.filtered(
+            lambda p: (
+                p.improvement_return
+                and p.improvement_polish_employee_id
+                and p.improvement_polish_employee_id != self.employee_id
+            )
+        )
+
+    def _build_employee_warning_message(self, mismatched_packets):
+        self.ensure_one()
+        lines = [
+            _("This packet was returned for improvement and was previously polished by another worker."),
+            "",
+        ]
+        for packet in mismatched_packets:
+            lines.append(_(
+                "• %(packet)s — expected: %(expected)s, selected: %(selected)s"
+            ) % {
+                "packet": packet.packet_no,
+                "expected": packet.improvement_polish_employee_id.display_name,
+                "selected": self.employee_id.display_name,
+            })
+        lines.extend([
+            "",
+            _("Continue with the selected employee, or go back to change the selection."),
+        ])
+        return "\n".join(lines)
+
+    def action_back_from_warning(self):
+        """Return to the issue form to change employee."""
+        self.ensure_one()
+        self.write({
+            "show_employee_warning": False,
+            "employee_warning_message": False,
+        })
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Issue Packet(s)"),
+            "res_model": "diamond.packet.issue.wizard",
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "new",
+        }
+
+    def action_confirm_mismatch(self):
+        """User accepted issuing to a different polish worker."""
+        self.ensure_one()
+        return self.with_context(skip_improvement_employee_warning=True).action_issue()
+
     # ─────────────────────── Confirm ───────────────────────
     _MODE_TO_DOC = {
         "process": ("diamond.process.issue", "diamond.process.issue.line"),
@@ -199,6 +273,25 @@ class DiamondPacketIssueWizard(models.TransientModel):
         """Create + confirm the matching issue document, then open it."""
         self.ensure_one()
         self._validate()
+
+        if (
+            not self.env.context.get("skip_improvement_employee_warning")
+            and not self.show_employee_warning
+        ):
+            mismatched = self._improvement_employee_mismatch()
+            if mismatched:
+                self.write({
+                    "show_employee_warning": True,
+                    "employee_warning_message": self._build_employee_warning_message(mismatched),
+                })
+                return {
+                    "type": "ir.actions.act_window",
+                    "name": _("Issue Packet(s)"),
+                    "res_model": "diamond.packet.issue.wizard",
+                    "res_id": self.id,
+                    "view_mode": "form",
+                    "target": "new",
+                }
 
         doc_model, _line_model = self._MODE_TO_DOC[self.mode]
         Doc = self.env[doc_model]

@@ -133,6 +133,21 @@ class DiamondPacket(models.Model):
         string="Pending Labour Weight", digits=(12, 4),
         help="Original labour weight for an unfinished factory process (survives un-processed receive).",
     )
+
+    # Party returned an outward packet for improvement (re-polish).
+    improvement_return = fields.Boolean(
+        string="Improvement Return",
+        index=True,
+        help="Packet was returned from outward for improvement. "
+             "No party charge or worker salary on the next polish receive.",
+    )
+    improvement_polish_employee_id = fields.Many2one(
+        "diamond.employee",
+        string="Previous Polish Worker",
+        index=True,
+        help="Employee who last polished this packet before outward. "
+             "Factory polish issue should go to this worker.",
+    )
     current_factory_labour_weight_cts = fields.Float(
         string="Current Labour Weight", digits=(12, 4),
         help="Labour weight for the active factory issue (set on issue, used on receive).",
@@ -261,6 +276,25 @@ class DiamondPacket(models.Model):
         return res
 
     # ───────────────────────── Helpers ─────────────────────────
+    @api.model
+    def _get_polish_process(self):
+        """Return the polishing process master (code POL), if configured."""
+        return self.env["diamond.process"].search([("code", "=", "POL")], limit=1)
+
+    def _find_last_polish_employee(self):
+        """Last factory worker who polished this packet (before improvement return)."""
+        self.ensure_one()
+        polish_process = self._get_polish_process()
+        if not polish_process:
+            return self.env["diamond.employee"]
+        history = self.env["diamond.packet.history"].search([
+            ("packet_id", "=", self.id),
+            ("process_id", "=", polish_process.id),
+            ("action", "in", ("factory_issue", "factory_receive")),
+            ("employee_id", "!=", False),
+        ], order="create_date desc, id desc", limit=1)
+        return history.employee_id if history else self.env["diamond.employee"]
+
     def _log_history(self, action, note=False, party_id=False, employee_id=False, process_id=False):
         self.ensure_one()
         return self.env["diamond.packet.history"].sudo().create({

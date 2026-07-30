@@ -9,12 +9,16 @@
             <field name="arch" type="xml">
                 <form string="Issue Packet(s)">
                     <sheet>
-                        <h1 class="text-center">
+                        <div class="alert alert-warning" role="alert" invisible="not show_employee_warning">
+                            <field name="employee_warning_message" nolabel="1" readonly="1"/>
+                        </div>
+
+                        <h1 class="text-center" invisible="show_employee_warning">
                             <i class="fa fa-share-square-o me-2"/>
                             Issue Packet(s)
                         </h1>
 
-                        <group>
+                        <group invisible="show_employee_warning">
                             <group>
                                 <field name="mode" widget="radio"/>
                                 <field name="date" invisible="1"/>
@@ -27,7 +31,7 @@
                             </group>
                         </group>
 
-                        <group string="Destination">
+                        <group string="Destination" invisible="show_employee_warning">
                             <!-- Hidden helper fields that drive required-ness / visibility -->
                             <field name="is_party_required" invisible="1"/>
                             <field name="is_employee_required" invisible="1"/>
@@ -53,7 +57,7 @@
                                    required="show_expected_return"/>
                         </group>
 
-                        <notebook>
+                        <notebook invisible="show_employee_warning">
                             <page string="Packets to Issue">
                                 <field name="packet_ids">
                                     <list create="false" delete="true">
@@ -74,16 +78,32 @@
                                 <field name="note"/>
                             </page>
                         </notebook>
+
+                        <field name="show_employee_warning" invisible="1"/>
                     </sheet>
                     <footer>
+                        <button name="action_confirm_mismatch"
+                                string="Continue with this Employee"
+                                type="object"
+                                class="btn-primary"
+                                invisible="not show_employee_warning"
+                                data-hotkey="q"/>
+                        <button name="action_back_from_warning"
+                                string="Back"
+                                type="object"
+                                class="btn-secondary"
+                                invisible="not show_employee_warning"
+                                data-hotkey="b"/>
                         <button name="action_issue"
                                 string="Issue &amp; Confirm"
                                 type="object"
                                 class="btn-primary"
+                                invisible="show_employee_warning"
                                 data-hotkey="q"/>
                         <button string="Cancel"
                                 class="btn-secondary"
                                 special="cancel"
+                                invisible="show_employee_warning"
                                 data-hotkey="x"/>
                     </footer>
                 </form>

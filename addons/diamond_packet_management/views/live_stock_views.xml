@@ -42,6 +42,8 @@
                     <field name="clarity_id" string="Clarity"/>
                     <field name="state" string="Status"/>
                     <field name="current_process_id" string="Process"/>
+                    <field name="improvement_return" string="Improvement" optional="show"/>
+                    <field name="improvement_polish_employee_id" string="Prev. Polisher" optional="hide"/>
                     <field name="inward_party_id" string="Party"/>
                     <field name="inward_id" optional="hide"/>
                     <field name="inward_date"/>

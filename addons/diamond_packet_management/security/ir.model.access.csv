@@ -45,6 +45,10 @@ access_diamond_outward_user,diamond.outward user,model_diamond_outward,group_dia
 access_diamond_outward_mgr,diamond.outward manager,model_diamond_outward,group_diamond_manager,1,1,1,1
 access_diamond_outward_line_user,diamond.outward.line user,model_diamond_outward_line,group_diamond_user,1,1,1,1
 access_diamond_outward_line_mgr,diamond.outward.line manager,model_diamond_outward_line,group_diamond_manager,1,1,1,1
+access_diamond_improvement_return_user,diamond.improvement.return user,model_diamond_improvement_return,group_diamond_user,1,1,1,0
+access_diamond_improvement_return_mgr,diamond.improvement.return manager,model_diamond_improvement_return,group_diamond_manager,1,1,1,1
+access_diamond_improvement_return_line_user,diamond.improvement.return.line user,model_diamond_improvement_return_line,group_diamond_user,1,1,1,1
+access_diamond_improvement_return_line_mgr,diamond.improvement.return.line manager,model_diamond_improvement_return_line,group_diamond_manager,1,1,1,1
 access_diamond_process_issue_user,diamond.process.issue user,model_diamond_process_issue,group_diamond_user,1,1,1,0
 access_diamond_process_issue_mgr,diamond.process.issue manager,model_diamond_process_issue,group_diamond_manager,1,1,1,1
 access_diamond_process_issue_line_user,diamond.process.issue.line user,model_diamond_process_issue_line,group_diamond_user,1,1,1,1

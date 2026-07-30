@@ -81,6 +81,13 @@
             <field name="padding">5</field>
         </record>
 
+        <record id="seq_diamond_improvement_return" model="ir.sequence">
+            <field name="name">Diamond Improvement Return</field>
+            <field name="code">diamond.improvement.return</field>
+            <field name="prefix">IMP/%(year)s/</field>
+            <field name="padding">5</field>
+        </record>
+
         <record id="seq_diamond_party_invoice" model="ir.sequence">
             <field name="name">Party Labour Invoice</field>
             <field name="code">diamond.party.invoice</field>

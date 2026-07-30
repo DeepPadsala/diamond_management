@@ -1,6 +1,6 @@
 {
     "name": "Diamond Packet Management",
-    "version": "18.0.1.12.0",
+    "version": "18.0.1.14.0",
     "summary": "Diamond packet lifecycle: inward, process / jobwork / factory / HPHT, outward — multi-company, barcode-ready.",
     "description": """
 Diamond Packet Management
@@ -36,6 +36,7 @@ Features
         "data/diamond_sequences.xml",
         "data/diamond_demo_masters.xml",
         "views/diamond_menus.xml",
+        "views/hide_system_menus.xml",
         "views/res_company_views.xml",
         "views/master_shape_views.xml",
         "views/master_color_views.xml",
@@ -55,6 +56,7 @@ Features
         "views/packet_views.xml",
         "views/inward_views.xml",
         "views/outward_views.xml",
+        "views/improvement_return_views.xml",
         "views/process_transaction_views.xml",
         "views/jobwork_views.xml",
         "views/factory_views.xml",
