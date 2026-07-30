@@ -31,6 +31,7 @@ class DiamondPacketHistory(models.Model):
             ("hpht_issue", "HPHT Issue"),
             ("hpht_receive", "HPHT Receive"),
             ("improvement_return", "Improvement Return"),
+            ("split", "Split into Children"),
             ("rollback", "Rollback"),
             ("note", "Note"),
         ],

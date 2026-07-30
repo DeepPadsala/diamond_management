@@ -35,8 +35,15 @@
                         <field name="show_unprocessed" invisible="1"/>
                         <field name="show_new_color" invisible="1"/>
 
+                        <field name="show_split_receive" invisible="1"/>
+
                         <separator string="Received Weights"/>
-                        <p class="text-muted">
+                        <p class="text-muted" invisible="not show_split_receive">
+                            For jobwork returns with multiple stones, tick <b>Split into Children</b>
+                            on a line and enter each child weight. Child packets appear in Live Stock;
+                            the parent packet is kept for traceability only.
+                        </p>
+                        <p class="text-muted" invisible="show_split_receive">
                             Enter the actual <b>Received Cts</b> for each packet;
                             loss is calculated automatically.
                         </p>
@@ -49,11 +56,18 @@
                                 <field name="clarity" readonly="1"/>
                                 <field name="old_pcs" string="Issued Pcs"/>
                                 <field name="old_cts" string="Issued Cts"/>
+                                <field name="split_receive"
+                                       column_invisible="not parent.show_split_receive"/>
+                                <field name="new_cts" string="Recv Cts"
+                                       readonly="split_receive"
+                                       force_save="1"/>
+                                <field name="new_pcs" string="Recv Pcs"
+                                       readonly="split_receive"
+                                       force_save="1"/>
                                 <field name="labour_weight_cts" string="Labour Wt"
                                        readonly="1"
                                        column_invisible="parent.mode != 'factory'"/>
-                                <field name="new_cts" string="Recv Cts"/>
-                                <field name="new_pcs" string="Recv Pcs"/><field name="unprocessed"
+                                <field name="unprocessed"
                                        column_invisible="not parent.show_unprocessed"/>
                                 <field name="loss_cts"
                                        decoration-danger="loss_cts &gt; 0"
@@ -70,6 +84,34 @@
                                 <field name="allow_weight_gain" optional="hide"/>
                                 <field name="note" optional="hide"/>
                             </list>
+                            <form string="Receive Line">
+                                <group>
+                                    <field name="packet_id" readonly="1"/>
+                                    <field name="old_cts" readonly="1"/>
+                                    <field name="split_receive"
+                                           invisible="parent.mode != 'jobwork'"/>
+                                </group>
+                                <group invisible="split_receive">
+                                    <field name="new_pcs"/>
+                                    <field name="new_cts"/>
+                                </group>
+                                <group string="Child Packets" invisible="not split_receive">
+                                    <field name="child_line_ids" nolabel="1">
+                                        <list editable="bottom">
+                                            <field name="pcs"/>
+                                            <field name="cts"/>
+                                            <field name="note"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group invisible="not split_receive">
+                                    <field name="new_pcs" readonly="1"/>
+                                    <field name="new_cts" readonly="1"/>
+                                    <field name="loss_cts" readonly="1"/>
+                                    <field name="labour_amount"/>
+                                    <field name="allow_weight_gain"/>
+                                </group>
+                            </form>
                         </field>
 
                         <group class="oe_subtotal_footer oe_right">

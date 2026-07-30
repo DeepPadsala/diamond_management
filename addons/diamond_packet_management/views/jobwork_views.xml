@@ -86,12 +86,34 @@
                             <list editable="bottom">
                                 <field name="packet_id"/>
                                 <field name="barcode" readonly="1"/>
+                                <field name="is_split"/>
                                 <field name="pcs"/>
                                 <field name="cts"/>
                                 <field name="loss_cts"/>
                                 <field name="labour_amount"/>
                                 <field name="note"/>
                             </list>
+                            <form string="Receive Line">
+                                <group>
+                                    <field name="packet_id" readonly="1"/>
+                                    <field name="is_split" readonly="1"/>
+                                    <field name="pcs" readonly="1"/>
+                                    <field name="cts" readonly="1"/>
+                                    <field name="loss_cts" readonly="1"/>
+                                    <field name="labour_amount" readonly="1"/>
+                                </group>
+                                <group string="Child Packets" invisible="not is_split">
+                                    <field name="child_line_ids" readonly="1" nolabel="1">
+                                        <list>
+                                            <field name="pcs"/>
+                                            <field name="cts"/>
+                                            <field name="packet_id"/>
+                                            <field name="note"/>
+                                        </list>
+                                    </field>
+                                    <field name="child_packet_ids" readonly="1" widget="many2many_tags"/>
+                                </group>
+                            </form>
                         </field>
                     </sheet>
                 </form>

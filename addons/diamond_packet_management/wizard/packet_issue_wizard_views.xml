@@ -83,7 +83,7 @@
                     </sheet>
                     <footer>
                         <button name="action_confirm_mismatch"
-                                string="Continue with this Employee"
+                                string="Continue with New Employee"
                                 type="object"
                                 class="btn-primary"
                                 invisible="not show_employee_warning"

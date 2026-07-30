@@ -57,6 +57,7 @@ class DiamondPacketReceiveWizard(models.TransientModel):
     show_worker_labour = fields.Boolean(compute="_compute_flags")
     show_unprocessed = fields.Boolean(compute="_compute_flags")
     show_new_color = fields.Boolean(compute="_compute_flags")
+    show_split_receive = fields.Boolean(compute="_compute_flags")
 
     total_old_cts = fields.Float(string="Issued Cts", digits=(12, 4), compute="_compute_totals")
     total_new_cts = fields.Float(string="Received Cts", digits=(12, 4), compute="_compute_totals")
@@ -71,6 +72,7 @@ class DiamondPacketReceiveWizard(models.TransientModel):
             rec.show_party_labour = rec.mode in ("process", "factory", "hpht")
             rec.show_unprocessed = rec.mode == "factory"
             rec.show_new_color = rec.mode == "hpht"
+            rec.show_split_receive = rec.mode == "jobwork"
 
     @api.depends("process_id")
     def _compute_employee_domain(self):
@@ -174,18 +176,42 @@ class DiamondPacketReceiveWizard(models.TransientModel):
         if bad_co:
             raise UserError(_("Some packets are from a different company."))
 
-        bad_qty = self.line_ids.filtered(lambda l: l.new_pcs <= 0 or l.new_cts <= 0)
+        bad_qty = self.line_ids.filtered(
+            lambda l: not l.split_receive and (l.new_pcs <= 0 or l.new_cts <= 0)
+        )
         if bad_qty:
             raise UserError(_(
                 "Received pcs and cts must be greater than zero for: %s"
             ) % ", ".join(bad_qty.mapped("packet_id.packet_no")))
 
-        gain = self.line_ids.filtered(lambda l: l.new_cts > l.old_cts + 0.0001)
+        split_lines = self.line_ids.filtered("split_receive")
+        for wl in split_lines:
+            if len(wl.child_line_ids) < 2:
+                raise UserError(_(
+                    "Split receive needs at least 2 child packets for %(packet)s."
+                ) % {"packet": wl.packet_id.packet_no})
+            bad_children = wl.child_line_ids.filtered(lambda c: c.pcs <= 0 or c.cts <= 0)
+            if bad_children:
+                raise UserError(_(
+                    "Each child packet must have pcs and cts greater than zero for %(packet)s."
+                ) % {"packet": wl.packet_id.packet_no})
+
+        gain = self.line_ids.filtered(
+            lambda l: not l.split_receive and l.new_cts > l.old_cts + 0.0001
+        )
         if gain.filtered(lambda l: not l.allow_weight_gain):
             raise UserError(_(
                 "Received weight exceeds issued weight for: %s. "
                 "Tick 'Allow Gain' on those lines to override."
             ) % ", ".join(gain.filtered(lambda l: not l.allow_weight_gain).mapped("packet_id.packet_no")))
+
+        for wl in split_lines:
+            child_total = sum(wl.child_line_ids.mapped("cts"))
+            if child_total > wl.old_cts + 0.0001 and not wl.allow_weight_gain:
+                raise UserError(_(
+                    "Total child weight exceeds issued weight for %(packet)s. "
+                    "Tick 'Allow Gain' to override."
+                ) % {"packet": wl.packet_id.packet_no})
 
         if self.employee_id and self.process_id and not self.env["diamond.employee"].check_capable_for_process(
             self.employee_id, self.process_id,
@@ -221,6 +247,19 @@ class DiamondPacketReceiveWizard(models.TransientModel):
             }
             if self.mode == "jobwork":
                 v["labour_amount"] = wl.labour_amount
+                v["is_split"] = wl.split_receive
+                if wl.split_receive:
+                    v["child_line_ids"] = [
+                        (0, 0, {
+                            "pcs": child.pcs,
+                            "cts": child.cts,
+                            "note": child.note or "",
+                        })
+                        for child in wl.child_line_ids
+                    ]
+                    v["pcs"] = sum(wl.child_line_ids.mapped("pcs"))
+                    v["cts"] = sum(wl.child_line_ids.mapped("cts"))
+                    v["loss_cts"] = wl.loss_cts
             elif self.mode == "factory":
                 v["unprocessed"] = wl.unprocessed
                 v["issue_cts"] = wl.old_cts
@@ -270,6 +309,14 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
     allow_weight_gain = fields.Boolean(string="Allow Gain")
     new_color_id = fields.Many2one("diamond.color", string="New Color (HPHT)")
     labour_amount = fields.Float(string="Jobwork Labour", digits=(14, 2))
+    split_receive = fields.Boolean(
+        string="Split into Children",
+        help="Jobwork returned multiple stones — create child packets in live stock.",
+    )
+    child_line_ids = fields.One2many(
+        "diamond.packet.receive.wizard.child.line", "wizard_line_id",
+        string="Child Packets",
+    )
     labour_weight_cts = fields.Float(
         string="Labour Weight", digits=(12, 4),
         compute="_compute_labour_weight_preview",
@@ -283,11 +330,31 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
     worker_labour_amount = fields.Float(string="Worker Labour", digits=(14, 2), compute="_compute_labour_preview")
     note = fields.Char(string="Note")
 
-    @api.depends("old_cts", "new_cts")
+    @api.depends("old_cts", "new_cts", "child_line_ids.cts", "split_receive")
     def _compute_loss(self):
         for rec in self:
-            rec.loss_cts = (rec.old_cts or 0.0) - (rec.new_cts or 0.0)
+            if rec.split_receive and rec.child_line_ids:
+                received_cts = sum(rec.child_line_ids.mapped("cts"))
+            else:
+                received_cts = rec.new_cts or 0.0
+            rec.loss_cts = (rec.old_cts or 0.0) - received_cts
             rec.loss_pct = (rec.loss_cts / rec.old_cts * 100.0) if rec.old_cts else 0.0
+
+    @api.onchange("split_receive")
+    def _onchange_split_receive(self):
+        if self.split_receive and not self.child_line_ids:
+            self.child_line_ids = [
+                (0, 0, {"pcs": 1, "cts": 0.0}),
+                (0, 0, {"pcs": 1, "cts": 0.0}),
+            ]
+        elif not self.split_receive:
+            self.child_line_ids = [(5, 0, 0)]
+
+    @api.onchange("child_line_ids")
+    def _onchange_child_line_ids(self):
+        if self.split_receive and self.child_line_ids:
+            self.new_cts = sum(self.child_line_ids.mapped("cts"))
+            self.new_pcs = sum(self.child_line_ids.mapped("pcs"))
 
     @api.depends(
         "wizard_id.mode", "wizard_id.employee_id", "wizard_id.process_id",
@@ -409,3 +476,16 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
         if self.packet_id:
             self.new_pcs = self.packet_id.rdy_pcs or 1
             self.new_cts = self.packet_id.rdy_cts or 0.0
+
+
+class DiamondPacketReceiveWizardChildLine(models.TransientModel):
+    _name = "diamond.packet.receive.wizard.child.line"
+    _description = "Receive Wizard Child Line"
+    _order = "id"
+
+    wizard_line_id = fields.Many2one(
+        "diamond.packet.receive.wizard.line", required=True, ondelete="cascade",
+    )
+    pcs = fields.Integer(string="Pcs", default=1, required=True)
+    cts = fields.Float(string="Cts", digits=(12, 4), required=True)
+    note = fields.Char(string="Note")

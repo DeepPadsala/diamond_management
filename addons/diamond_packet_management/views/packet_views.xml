@@ -53,7 +53,7 @@
                         <button name="action_outward"       string="Outward"   type="object" invisible="state=='closed'"/>
                         <button name="action_close"         string="Close"         type="object" invisible="state=='closed'"/>
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,in_stock,in_process,in_factory,in_jobwork,in_hpht,ready,outward,closed"/>
+                               statusbar_visible="draft,in_stock,in_process,in_factory,in_jobwork,in_hpht,ready,outward,split,closed"/>
                     </header>
                     <sheet>
                         <group string="Identification">
@@ -111,6 +111,11 @@
                                 <field name="improvement_return" readonly="1"/>
                                 <field name="improvement_polish_employee_id" readonly="1"/>
                             </group>
+                            <group string="Parent / Child Packets">
+                                <field name="parent_packet_id" readonly="1"/>
+                                <field name="child_count" readonly="1" invisible="not child_packet_ids"/>
+                                <field name="split_date" readonly="1" invisible="state != 'split'"/>
+                            </group>
                             <group string="Documents">
                                 <field name="inward_id" readonly="1"/>
                                 <field name="inward_date" readonly="1"/>
@@ -123,6 +128,19 @@
                         </group>
 
                         <notebook>
+                            <page string="Child Packets" name="children"
+                                  invisible="not child_packet_ids">
+                                <field name="child_packet_ids" readonly="1">
+                                    <list>
+                                        <field name="packet_no"/>
+                                        <field name="barcode"/>
+                                        <field name="user_packet_no"/>
+                                        <field name="rdy_pcs"/>
+                                        <field name="rdy_cts"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                            </page>
                             <page string="History" name="history">
                                 <field name="history_ids" readonly="1">
                                     <list>
@@ -170,6 +188,8 @@
                     <filter name="in_hpht"    string="In HPHT"    domain="[('state','=','in_hpht')]"/>
                     <filter name="ready"      string="Ready"      domain="[('state','=','ready')]"/>
                     <filter name="improvement_return" string="Improvement Return" domain="[('improvement_return','=',True)]"/>
+                    <filter name="child_packets" string="Child Packets" domain="[('parent_packet_id','!=',False)]"/>
+                    <filter name="split_parents" string="Split Parents" domain="[('state','=','split')]"/>
                     <separator/>
                     <filter name="open" string="Open (not closed)" domain="[('state','!=','closed')]"/>
                     <group expand="0" string="Group By">

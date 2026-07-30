@@ -6,8 +6,7 @@ class DiamondImprovementReturn(models.Model):
     """Party returns an outward packet for improvement (re-polish).
 
     The packet comes back to stock flagged for improvement work.
-    No party labour charge and no worker salary are applied when the
-    improvement polish is received.
+    No party labour charge on receive; worker salary is still created.
     """
 
     _name = "diamond.improvement.return"
@@ -105,15 +104,70 @@ class DiamondImprovementReturnLine(models.Model):
         "diamond.packet", string="Packet", required=True,
         domain="[('state', '=', 'outward')]",
     )
-    barcode = fields.Char(related="packet_id.barcode", string="Barcode", store=False)
+    barcode = fields.Char(
+        string="Barcode",
+        help="Scan packet barcode to auto-select the outward packet.",
+    )
     pcs = fields.Integer(string="Pcs", default=1)
     cts = fields.Float(string="Cts", digits=(12, 4))
     note = fields.Char(string="Note")
 
+    def _apply_packet(self, packet):
+        """Fill line fields from the selected outward packet."""
+        self.packet_id = packet
+        self.barcode = packet.barcode
+        self.pcs = packet.rdy_pcs or 1
+        self.cts = packet.rdy_cts or 0.0
+        if self.return_id and not self.return_id.ledger_id and packet.current_holder_id:
+            self.return_id.ledger_id = packet.current_holder_id
+
+    @api.onchange("barcode")
+    def _onchange_barcode(self):
+        code = (self.barcode or "").strip()
+        if not code:
+            return
+        Packet = self.env["diamond.packet"]
+        packet = Packet.find_by_barcode(code)
+        if not packet:
+            return {
+                "warning": {
+                    "title": _("Packet not found"),
+                    "message": _("No packet found for barcode: %s") % code,
+                }
+            }
+        if packet.state != "outward":
+            return {
+                "warning": {
+                    "title": _("Not an outward packet"),
+                    "message": _(
+                        "Packet %(packet)s is %(state)s. Only outward packets can be returned for improvement."
+                    ) % {"packet": packet.packet_no, "state": packet.state},
+                }
+            }
+        company = self.return_id.company_id if self.return_id else self.env.company
+        if company and packet.company_id != company:
+            return {
+                "warning": {
+                    "title": _("Wrong company"),
+                    "message": _("Packet %(packet)s belongs to another company.") % {
+                        "packet": packet.packet_no,
+                    },
+                }
+            }
+        # Avoid duplicate lines for the same packet on this document.
+        siblings = (self.return_id.line_ids - self) if self.return_id else self.env[self._name]
+        if siblings.filtered(lambda l: l.packet_id == packet):
+            return {
+                "warning": {
+                    "title": _("Already added"),
+                    "message": _("Packet %(packet)s is already on this improvement return.") % {
+                        "packet": packet.packet_no,
+                    },
+                }
+            }
+        self._apply_packet(packet)
+
     @api.onchange("packet_id")
     def _onchange_packet(self):
         if self.packet_id:
-            self.pcs = self.packet_id.rdy_pcs or 1
-            self.cts = self.packet_id.rdy_cts or 0.0
-            if self.return_id and not self.return_id.ledger_id:
-                self.return_id.ledger_id = self.packet_id.current_holder_id
+            self._apply_packet(self.packet_id)

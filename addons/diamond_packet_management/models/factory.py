@@ -231,17 +231,24 @@ class DiamondFactoryReceive(models.Model):
                 self._apply_factory_receive_line(rec, line)
 
             completed_lines = rec.line_ids.filtered(lambda l: not l.unprocessed)
+            normal_lines = completed_lines.filtered(
+                lambda l: not l.packet_id.improvement_return,
+            )
             improvement_lines = completed_lines.filtered(
                 lambda l: l.packet_id.improvement_return,
             )
-            labour_lines = completed_lines - improvement_lines
-            if labour_lines:
-                temp_rec = rec.with_context(factory_labour_line_ids=labour_lines.ids)
+            if normal_lines:
+                temp_rec = rec.with_context(factory_labour_line_ids=normal_lines.ids)
                 temp_rec._create_labour_entries_from_receive(
                     temp_rec, "diamond.factory.receive.line", "diamond.factory.receive",
                     create_party=True, create_worker=True,
                 )
             if improvement_lines:
+                temp_rec = rec.with_context(factory_labour_line_ids=improvement_lines.ids)
+                temp_rec._create_labour_entries_from_receive(
+                    temp_rec, "diamond.factory.receive.line", "diamond.factory.receive",
+                    create_party=False, create_worker=True,
+                )
                 improvement_lines.mapped("packet_id").write({
                     "improvement_return": False,
                     "improvement_polish_employee_id": False,

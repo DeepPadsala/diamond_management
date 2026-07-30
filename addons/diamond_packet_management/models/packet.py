@@ -86,6 +86,7 @@ class DiamondPacket(models.Model):
             ("in_hpht", "In HPHT"),
             ("ready", "Ready"),
             ("outward", "Outward"),
+            ("split", "Split (Parent)"),
             ("closed", "Closed"),
         ],
         string="Status",
@@ -139,7 +140,7 @@ class DiamondPacket(models.Model):
         string="Improvement Return",
         index=True,
         help="Packet was returned from outward for improvement. "
-             "No party charge or worker salary on the next polish receive.",
+             "No party charge on the next polish receive; worker salary still applies.",
     )
     improvement_polish_employee_id = fields.Many2one(
         "diamond.employee",
@@ -148,6 +149,26 @@ class DiamondPacket(models.Model):
         help="Employee who last polished this packet before outward. "
              "Factory polish issue should go to this worker.",
     )
+
+    # Parent / child packets (jobwork split on receive).
+    parent_packet_id = fields.Many2one(
+        "diamond.packet",
+        string="Parent Packet",
+        index=True,
+        ondelete="set null",
+        help="Original packet this stone was split from.",
+    )
+    child_packet_ids = fields.One2many(
+        "diamond.packet", "parent_packet_id", string="Child Packets",
+    )
+    child_count = fields.Integer(
+        string="Child Count", compute="_compute_child_count", store=True,
+    )
+    split_date = fields.Datetime(
+        string="Split Date", readonly=True,
+        help="When this parent packet was split into child packets.",
+    )
+
     current_factory_labour_weight_cts = fields.Float(
         string="Current Labour Weight", digits=(12, 4),
         help="Labour weight for the active factory issue (set on issue, used on receive).",
@@ -202,6 +223,11 @@ class DiamondPacket(models.Model):
     def _compute_amount(self):
         for rec in self:
             rec.amount = (rec.rdy_cts or 0.0) * (rec.rate_per_cts or 0.0)
+
+    @api.depends("child_packet_ids")
+    def _compute_child_count(self):
+        for rec in self:
+            rec.child_count = len(rec.child_packet_ids)
 
     def _compute_days_in_stock(self):
         now = fields.Datetime.now()
@@ -294,6 +320,46 @@ class DiamondPacket(models.Model):
             ("employee_id", "!=", False),
         ], order="create_date desc, id desc", limit=1)
         return history.employee_id if history else self.env["diamond.employee"]
+
+    def _owner_ledger_for_barcode(self):
+        """Party used when auto-generating child packet barcodes."""
+        self.ensure_one()
+        if self.inward_id and self.inward_id.ledger_id:
+            return self.inward_id.ledger_id
+        return self.current_holder_id
+
+    def _prepare_child_packet_vals(self, pcs, cts, suffix_index):
+        """Build vals for a child packet split from this parent."""
+        self.ensure_one()
+        owner = self._owner_ledger_for_barcode()
+        base_ref = self.user_packet_no or self.packet_no or str(self.id)
+        return {
+            "company_id": self.company_id.id,
+            "parent_packet_id": self.id,
+            "kapan_no": self.kapan_no,
+            "user_packet_no": "%s-%s" % (base_ref, suffix_index),
+            "product_id": self.product_id.id,
+            "shape_id": self.shape_id.id,
+            "color_id": self.color_id.id,
+            "clarity_id": self.clarity_id.id,
+            "cut_id": self.cut_id.id,
+            "polish_id": self.polish_id.id,
+            "symmetry_id": self.symmetry_id.id,
+            "fluorescence_id": self.fluorescence_id.id,
+            "lab_id": self.lab_id.id,
+            "charni_id": self.charni_id.id,
+            "org_pcs": pcs,
+            "org_cts": cts,
+            "expected_cts": cts,
+            "rdy_pcs": pcs,
+            "rdy_cts": cts,
+            "rate_per_cts": self.rate_per_cts,
+            "inward_id": self.inward_id.id,
+            "inward_date": self.inward_date,
+            "current_holder_id": owner.id if owner else False,
+            "state": "in_stock",
+            "current_location": "office",
+        }
 
     def _log_history(self, action, note=False, party_id=False, employee_id=False, process_id=False):
         self.ensure_one()
@@ -389,7 +455,7 @@ class DiamondPacket(models.Model):
         code = self._normalize_scan_code(code)
         if not code:
             return []
-        live_domain = [("state", "not in", ("outward", "closed"))]
+        live_domain = [("state", "not in", ("outward", "closed", "split"))]
         packet = self.search([("barcode", "=", code)] + live_domain, limit=1)
         if not packet:
             packet = self.search([("barcode", "=ilike", code)] + live_domain, limit=1)
@@ -400,7 +466,7 @@ class DiamondPacket(models.Model):
                     """
                     SELECT id FROM diamond_packet
                     WHERE company_id = %s
-                      AND state NOT IN ('outward', 'closed')
+                      AND state NOT IN ('outward', 'closed', 'split')
                       AND REGEXP_REPLACE(UPPER(barcode), '[^A-Z0-9]', '', 'g') = %s
                     LIMIT 1
                     """,
@@ -421,8 +487,8 @@ class DiamondPacket(models.Model):
         moves the packet's state and writes the audit-log row.
         """
         for rec in self:
-            if rec.state in ("outward", "closed"):
-                raise UserError(_("Packet %s is already outward / closed.") % rec.packet_no)
+            if rec.state in ("outward", "closed", "split"):
+                raise UserError(_("Packet %s is already outward / closed / split.") % rec.packet_no)
         return {
             "type": "ir.actions.act_window",
             "name": _("Issue Packet(s)"),

@@ -74,7 +74,7 @@ class DiamondPacketIssueWizard(models.TransientModel):
     show_party = fields.Boolean(compute="_compute_flags")
     show_expected_return = fields.Boolean(compute="_compute_flags")
 
-    # Improvement-return polish employee mismatch warning
+    # Employee mismatch warning (improvement return / un-processed resume)
     show_employee_warning = fields.Boolean(default=False)
     employee_warning_message = fields.Text(readonly=True)
 
@@ -163,6 +163,15 @@ class DiamondPacketIssueWizard(models.TransientModel):
                 polish_employees = improvement_packets.mapped("improvement_polish_employee_id")
                 if len(polish_employees) == 1 and polish_employees:
                     res.setdefault("employee_id", polish_employees.id)
+            else:
+                pending_packets = packets.filtered("pending_factory_employee_id")
+                if pending_packets:
+                    pending_processes = pending_packets.mapped("pending_factory_process_id")
+                    if len(pending_processes) == 1 and pending_processes:
+                        res.setdefault("process_id", pending_processes.id)
+                    pending_employees = pending_packets.mapped("pending_factory_employee_id")
+                    if len(pending_employees) == 1 and pending_employees:
+                        res.setdefault("employee_id", pending_employees.id)
         return res
 
     # ─────────────────────── Validation ───────────────────────
@@ -170,10 +179,10 @@ class DiamondPacketIssueWizard(models.TransientModel):
         self.ensure_one()
         if not self.packet_ids:
             raise UserError(_("Select at least one packet to issue."))
-        bad = self.packet_ids.filtered(lambda p: p.state in ("outward", "closed"))
+        bad = self.packet_ids.filtered(lambda p: p.state in ("outward", "closed", "split"))
         if bad:
             raise UserError(_(
-                "These packets cannot be issued (already outward / closed): %s"
+                "These packets cannot be issued (already outward / closed / split): %s"
             ) % ", ".join(bad.mapped("packet_no")))
         wrong_co = self.packet_ids.filtered(lambda p: p.company_id.id != self.company_id.id)
         if wrong_co:
@@ -208,7 +217,7 @@ class DiamondPacketIssueWizard(models.TransientModel):
         return self.process_id.code == "POL"
 
     def _improvement_employee_mismatch(self):
-        """Return improvement packets whose polish worker differs from selection."""
+        """Improvement-return packets whose polish worker differs from selection."""
         self.ensure_one()
         if self.mode != "factory" or not self._is_polish_process() or not self.employee_id:
             return self.env["diamond.packet"]
@@ -220,23 +229,65 @@ class DiamondPacketIssueWizard(models.TransientModel):
             )
         )
 
+    def _pending_factory_employee_mismatch(self):
+        """Un-processed packets whose pending worker differs from selection."""
+        self.ensure_one()
+        if self.mode != "factory" or not self.process_id or not self.employee_id:
+            return self.env["diamond.packet"]
+        return self.packet_ids.filtered(
+            lambda p: (
+                p.pending_factory_employee_id
+                and p.pending_factory_process_id == self.process_id
+                and p.pending_factory_employee_id != self.employee_id
+            )
+        )
+
+    def _employee_mismatch_packets(self):
+        """All packets that should trigger the employee warning."""
+        self.ensure_one()
+        return self._improvement_employee_mismatch() | self._pending_factory_employee_mismatch()
+
+    def _packet_mismatch_label(self, packet):
+        """Human-readable reason why this packet expects another worker."""
+        self.ensure_one()
+        if (
+            packet.improvement_return
+            and packet.improvement_polish_employee_id
+            and packet.improvement_polish_employee_id != self.employee_id
+        ):
+            return _(
+                "improvement return — previously polished by %(expected)s"
+            ) % {"expected": packet.improvement_polish_employee_id.display_name}
+        if (
+            packet.pending_factory_employee_id
+            and packet.pending_factory_process_id == self.process_id
+            and packet.pending_factory_employee_id != self.employee_id
+        ):
+            return _(
+                "un-processed %(process)s — was working: %(expected)s"
+            ) % {
+                "process": packet.pending_factory_process_id.display_name,
+                "expected": packet.pending_factory_employee_id.display_name,
+            }
+        return ""
+
     def _build_employee_warning_message(self, mismatched_packets):
         self.ensure_one()
         lines = [
-            _("This packet was returned for improvement and was previously polished by another worker."),
+            _("A different employee was selected for packet(s) that already have a worker assigned."),
             "",
         ]
         for packet in mismatched_packets:
             lines.append(_(
-                "• %(packet)s — expected: %(expected)s, selected: %(selected)s"
+                "• %(packet)s — %(reason)s, selected: %(selected)s"
             ) % {
                 "packet": packet.packet_no,
-                "expected": packet.improvement_polish_employee_id.display_name,
+                "reason": self._packet_mismatch_label(packet),
                 "selected": self.employee_id.display_name,
             })
         lines.extend([
             "",
-            _("Continue with the selected employee, or go back to change the selection."),
+            _("Continue with the new employee, or go back to change the selection."),
         ])
         return "\n".join(lines)
 
@@ -257,9 +308,9 @@ class DiamondPacketIssueWizard(models.TransientModel):
         }
 
     def action_confirm_mismatch(self):
-        """User accepted issuing to a different polish worker."""
+        """User accepted issuing to a different worker."""
         self.ensure_one()
-        return self.with_context(skip_improvement_employee_warning=True).action_issue()
+        return self.with_context(skip_employee_warning=True).action_issue()
 
     # ─────────────────────── Confirm ───────────────────────
     _MODE_TO_DOC = {
@@ -275,10 +326,10 @@ class DiamondPacketIssueWizard(models.TransientModel):
         self._validate()
 
         if (
-            not self.env.context.get("skip_improvement_employee_warning")
+            not self.env.context.get("skip_employee_warning")
             and not self.show_employee_warning
         ):
-            mismatched = self._improvement_employee_mismatch()
+            mismatched = self._employee_mismatch_packets()
             if mismatched:
                 self.write({
                     "show_employee_warning": True,
