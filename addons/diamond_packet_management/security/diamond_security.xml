@@ -310,5 +310,11 @@
             <field name="domain_force">[('company_id','in',company_ids)]</field>
         </record>
 
+        <record id="rule_diamond_attendance_company" model="ir.rule">
+            <field name="name">Attendance: multi-company</field>
+            <field name="model_id" ref="model_diamond_attendance"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+        </record>
+
     </data>
 </odoo>

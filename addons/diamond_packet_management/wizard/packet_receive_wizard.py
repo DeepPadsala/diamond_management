@@ -338,25 +338,6 @@ class DiamondPacketReceiveWizardLine(models.TransientModel):
         for rec in self:
             rec.child_count = len(rec.child_line_ids)
 
-    def action_edit_child_packets(self):
-        """Open line form so user can add child pcs/cts (editable list hides nested O2M)."""
-        self.ensure_one()
-        if not self.split_receive:
-            raise UserError(_("Tick 'Split into Children' first."))
-        view = self.env.ref(
-            "diamond_packet_management.view_packet_receive_wizard_line_split_form",
-            raise_if_not_found=False,
-        )
-        return {
-            "name": _("Child Packets — %s") % (self.packet_id.barcode or self.packet_id.display_name),
-            "type": "ir.actions.act_window",
-            "res_model": "diamond.packet.receive.wizard.line",
-            "res_id": self.id,
-            "view_mode": "form",
-            "views": [(view.id, "form")] if view else [(False, "form")],
-            "target": "new",
-        }
-
     @api.depends("old_cts", "new_cts", "child_line_ids.cts", "split_receive")
     def _compute_loss(self):
         for rec in self:

@@ -15,6 +15,7 @@ from . import master_lab
 from . import master_charni
 from . import master_process
 from . import master_employee
+from . import attendance
 from . import master_account_group
 from . import master_ledger
 from . import master_party_type

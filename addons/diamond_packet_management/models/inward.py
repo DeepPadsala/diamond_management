@@ -110,9 +110,9 @@ class DiamondInwardLine(models.Model):
     )
     process_id = fields.Many2one("diamond.process", string="Process")
 
-    shape_id = fields.Many2one("diamond.shape", string="Shape", required=True)
-    color_id = fields.Many2one("diamond.color", string="Color", required=True)
-    clarity_id = fields.Many2one("diamond.clarity", string="Clarity", required=True)
+    shape_id = fields.Many2one("diamond.shape", string="Shape")
+    color_id = fields.Many2one("diamond.color", string="Color")
+    clarity_id = fields.Many2one("diamond.clarity", string="Clarity")
     cut_id = fields.Many2one("diamond.cut", string="Cut")
     polish_id = fields.Many2one("diamond.polish", string="Polish")
     symmetry_id = fields.Many2one("diamond.symmetry", string="Symmetry")
@@ -120,12 +120,18 @@ class DiamondInwardLine(models.Model):
     lab_id = fields.Many2one("diamond.lab", string="Lab")
 
     org_pcs = fields.Integer(string="Pcs", default=1)
-    org_cts = fields.Float(string="Rough Weight", digits=(12, 4))
+    org_cts = fields.Float(string="Rough Weight", digits=(12, 4), required=True)
     expected_cts = fields.Float(string="Polish Weight", digits=(12, 4))
     rate_per_cts = fields.Float(string="Rate / Cts", digits=(12, 2))
     amount = fields.Float(string="Amount", digits=(14, 2), compute="_compute_amount", store=True)
 
     note = fields.Char(string="Note")
+
+    @api.constrains("org_cts")
+    def _check_org_cts(self):
+        for rec in self:
+            if not rec.org_cts or rec.org_cts <= 0:
+                raise UserError(_("Rough Weight is required and must be greater than zero."))
 
     @api.depends("org_cts", "rate_per_cts")
     def _compute_amount(self):
@@ -166,14 +172,14 @@ class DiamondInwardLine(models.Model):
                 "company_id": line.company_id.id,
                 "kapan_no": line.kapan_no,
                 "user_packet_no": line.user_packet_no,
-                "shape_id": line.shape_id.id,
-                "color_id": line.color_id.id,
-                "clarity_id": line.clarity_id.id,
-                "cut_id": line.cut_id.id,
-                "polish_id": line.polish_id.id,
-                "symmetry_id": line.symmetry_id.id,
-                "fluorescence_id": line.fluorescence_id.id,
-                "lab_id": line.lab_id.id,
+                "shape_id": line.shape_id.id if line.shape_id else False,
+                "color_id": line.color_id.id if line.color_id else False,
+                "clarity_id": line.clarity_id.id if line.clarity_id else False,
+                "cut_id": line.cut_id.id if line.cut_id else False,
+                "polish_id": line.polish_id.id if line.polish_id else False,
+                "symmetry_id": line.symmetry_id.id if line.symmetry_id else False,
+                "fluorescence_id": line.fluorescence_id.id if line.fluorescence_id else False,
+                "lab_id": line.lab_id.id if line.lab_id else False,
                 "rdy_pcs": line.org_pcs,
                 "rdy_cts": line.org_cts,
                 **line._packet_vals(),

@@ -1,6 +1,6 @@
 {
     "name": "Diamond Packet Management",
-    "version": "18.0.1.24.0",
+    "version": "18.0.1.26.0",
     "summary": "Diamond packet lifecycle: inward, process / jobwork / factory / HPHT, outward — multi-company, barcode-ready.",
     "description": """
 Diamond Packet Management
@@ -51,6 +51,7 @@ Features
         "views/master_ledger_views.xml",
         "views/master_labour_views.xml",
         "views/labour_billing_views.xml",
+        "views/attendance_views.xml",
         "views/employee_withdrawal_views.xml",
         "views/master_price_views.xml",
         "views/master_product_views.xml",
@@ -71,6 +72,7 @@ Features
         "wizard/jangad_print_wizard_views.xml",
         "wizard/inward_barcode_print_wizard_views.xml",
         "wizard/monthly_labour_wizard_views.xml",
+        "wizard/attendance_batch_wizard_views.xml",
         "views/diamond_chatter_views.xml",
         "report/jangad_report.xml",
         "report/barcode_label_report.xml",

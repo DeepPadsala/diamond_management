@@ -9,6 +9,8 @@
                     <field name="code"/>
                     <field name="name"/>
                     <field name="role"/>
+                    <field name="salary_type"/>
+                    <field name="monthly_salary" optional="hide"/>
                     <field name="process_ids" widget="many2many_tags" optional="show"/>
                     <field name="phone"/>
                     <field name="email"/>
@@ -41,6 +43,10 @@
                                    options="{'no_create_edit': True}"/>
                         </group>
                         <group string="Payroll">
+                            <field name="salary_type"/>
+                            <field name="monthly_salary"
+                                   invisible="salary_type != 'fixed'"
+                                   required="salary_type == 'fixed'"/>
                             <field name="advance_balance" readonly="1"/>
                         </group>
                         <notebook>

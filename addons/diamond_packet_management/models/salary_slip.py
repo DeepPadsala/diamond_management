@@ -113,3 +113,8 @@ class DiamondSalarySlipLine(models.Model):
     rate = fields.Float(string="Rate", digits=(12, 2))
     amount = fields.Float(string="Amount", digits=(14, 2))
     note = fields.Char(string="Note")
+    is_fixed_salary = fields.Boolean(
+        string="Fixed Salary Line",
+        default=False,
+        help="Generated from attendance / monthly salary (not factory labour).",
+    )

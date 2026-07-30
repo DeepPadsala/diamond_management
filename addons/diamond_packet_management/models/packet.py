@@ -53,9 +53,9 @@ class DiamondPacket(models.Model):
 
     # ───────────────────────── Master links ─────────────────────────
     product_id = fields.Many2one("diamond.product", string="Product")
-    shape_id = fields.Many2one("diamond.shape", string="Shape", required=True, tracking=True)
-    color_id = fields.Many2one("diamond.color", string="Color", required=True, tracking=True)
-    clarity_id = fields.Many2one("diamond.clarity", string="Clarity", required=True, tracking=True)
+    shape_id = fields.Many2one("diamond.shape", string="Shape", tracking=True)
+    color_id = fields.Many2one("diamond.color", string="Color", tracking=True)
+    clarity_id = fields.Many2one("diamond.clarity", string="Clarity", tracking=True)
     cut_id = fields.Many2one("diamond.cut", string="Cut")
     polish_id = fields.Many2one("diamond.polish", string="Polish")
     symmetry_id = fields.Many2one("diamond.symmetry", string="Symmetry")
@@ -642,3 +642,10 @@ class DiamondPacket(models.Model):
         for rec in self:
             rec.write({"state": "closed", "active": False})
         return True
+
+    def action_print_barcode(self):
+        """Print barcode label(s) for the selected packet(s)."""
+        packets = self.filtered(lambda p: p.barcode)
+        if not packets:
+            raise UserError(_("Selected packet(s) have no barcode to print."))
+        return self.env["diamond.barcode.label.print.service"].print_packet_labels(packets)

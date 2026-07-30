@@ -133,7 +133,9 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
                     "All open labour entries for this month are already on draft "
                     "invoices or salary slips. Open those documents to review them."
                 ))
-            raise UserError(_("No open labour entries found for the selected month."))
+            raise UserError(_(
+                "No open labour entries or fixed-salary employees found for the selected month."
+            ))
 
         month = int(self.period_month)
         if touched_invoices and touched_slips:
@@ -226,12 +228,28 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
     def _generate_salary_slips(self, month):
         Entry = self.env["diamond.labour.entry"]
         Slip = self.env["diamond.salary.slip"]
+        Employee = self.env["diamond.employee"]
         entries = Entry.search(self._billable_worker_domain(month))
         touched = Slip
         lines_added = 0
 
-        for employee in entries.mapped("employee_id"):
+        # Piece-rate workers with open labour entries
+        piece_employees = entries.mapped("employee_id")
+        # Fixed-salary workers (attendance-based), even with no labour entries
+        fixed_employees = Employee.search([
+            ("company_id", "=", self.company_id.id),
+            ("active", "=", True),
+            ("salary_type", "=", "fixed"),
+            ("monthly_salary", ">", 0),
+        ])
+        all_employees = piece_employees | fixed_employees
+
+        for employee in all_employees:
             emp_entries = entries.filtered(lambda e: e.employee_id == employee)
+            # Skip piece-rate employees with nothing to bill this pass
+            if employee.salary_type != "fixed" and not emp_entries:
+                continue
+
             slip, status = self._find_or_reopen_document(
                 "diamond.salary.slip", month, "employee_id", employee,
             )
@@ -272,6 +290,53 @@ class DiamondMonthlyLabourWizard(models.TransientModel):
                 entry.salary_slip_id = slip.id
                 lines_added += 1
 
+            if employee.salary_type == "fixed":
+                added = self._ensure_fixed_salary_line(slip, employee, month)
+                lines_added += added
+
             slip.action_apply_withdrawals()
 
         return touched, lines_added
+
+    def _ensure_fixed_salary_line(self, slip, employee, month):
+        """Create or refresh the attendance-based fixed salary line on the slip."""
+        Attendance = self.env["diamond.attendance"]
+        paid_days = Attendance.paid_days_for_period(employee, self.period_year, month)
+        days_in_month = Attendance.calendar_days_in_month(self.period_year, month)
+        if days_in_month <= 0:
+            return 0
+        amount = round((employee.monthly_salary or 0.0) * (paid_days / days_in_month), 2)
+        note = _(
+            "Fixed salary: %(paid).2f / %(total)d paid days × %(salary).2f"
+        ) % {
+            "paid": paid_days,
+            "total": days_in_month,
+            "salary": employee.monthly_salary or 0.0,
+        }
+        Line = self.env["diamond.salary.slip.line"]
+        existing = Line.search([
+            ("slip_id", "=", slip.id),
+            ("is_fixed_salary", "=", True),
+        ], limit=1)
+        vals = {
+            "slip_id": slip.id,
+            "is_fixed_salary": True,
+            "date": fields.Datetime.to_datetime(
+                fields.Date.to_date(f"{self.period_year:04d}-{month:02d}-01")
+            ),
+            "pcs": 0,
+            "cts": 0.0,
+            "loss_cts": 0.0,
+            "rate": employee.monthly_salary or 0.0,
+            "amount": amount,
+            "note": note,
+        }
+        if existing:
+            existing.write({
+                "rate": vals["rate"],
+                "amount": vals["amount"],
+                "note": vals["note"],
+            })
+            return 0
+        Line.create(vals)
+        return 1

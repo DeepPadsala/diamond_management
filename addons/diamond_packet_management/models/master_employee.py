@@ -45,6 +45,32 @@ class DiamondEmployee(models.Model):
         store=True,
         help="Confirmed withdrawals not yet recovered through salary slips.",
     )
+    salary_type = fields.Selection(
+        selection=[
+            ("piece_rate", "Piece Rate (Labour)"),
+            ("fixed", "Fixed Monthly"),
+        ],
+        string="Salary Type",
+        default="piece_rate",
+        required=True,
+        tracking=True,
+        help="Piece Rate: paid from factory labour entries. "
+             "Fixed Monthly: paid from attendance (pro-rata of monthly salary).",
+    )
+    monthly_salary = fields.Float(
+        string="Monthly Salary",
+        digits=(14, 2),
+        tracking=True,
+        help="Full-month fixed salary. Actual pay = monthly × (paid days / days in month).",
+    )
+
+    @api.constrains("salary_type", "monthly_salary")
+    def _check_monthly_salary(self):
+        for rec in self:
+            if rec.salary_type == "fixed" and (rec.monthly_salary or 0.0) <= 0:
+                raise ValidationError(_(
+                    "Set Monthly Salary greater than zero for fixed-salary employee %(emp)s."
+                ) % {"emp": rec.display_name})
 
     @api.depends(
         "withdrawal_ids.amount", "withdrawal_ids.deducted_amount", "withdrawal_ids.state",

@@ -242,6 +242,8 @@
                                         <field name="loss_cts"/>
                                         <field name="rate"/>
                                         <field name="amount" sum="Gross"/>
+                                        <field name="note" optional="show"/>
+                                        <field name="is_fixed_salary" optional="hide"/>
                                     </list>
                                 </field>
                             </page>

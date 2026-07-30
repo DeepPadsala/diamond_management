@@ -61,11 +61,11 @@
                                         <field name="user_packet_no"/>
                                         <field name="sequence_packet_no" readonly="1" optional="show"/>
                                         <field name="process_id"/>
-                                        <field name="org_cts"/>
+                                        <field name="org_cts" required="1"/>
                                         <field name="expected_cts"/>
-                                        <field name="shape_id"/>
-                                        <field name="color_id"/>
-                                        <field name="clarity_id"/>
+                                        <field name="shape_id" optional="show"/>
+                                        <field name="color_id" optional="show"/>
+                                        <field name="clarity_id" optional="show"/>
                                         <field name="cut_id"/>
                                         <field name="polish_id"/>
                                         <field name="symmetry_id"/>

@@ -39,15 +39,79 @@
 
                         <separator string="Received Weights"/>
                         <p class="text-muted" invisible="not show_split_receive">
-                            For jobwork returns with multiple stones: tick <b>Split into Children</b>,
-                            then click <b>Add Children</b>. Use <b>Add a line</b> for each stone (pcs/cts).
+                            Click the packet <b>line</b> to open it. Tick <b>Split into Children</b>,
+                            then use <b>Add a line</b> for each returned stone (pcs / cts).
                             Child packets appear in Live Stock; the parent is kept for traceability only.
                         </p>
                         <p class="text-muted" invisible="show_split_receive">
                             Enter the actual <b>Received Cts</b> for each packet;
                             loss is calculated automatically.
                         </p>
-                        <field name="line_ids">
+
+                        <!-- Jobwork: non-editable list — click row to open form (children O2M works there) -->
+                        <field name="line_ids" invisible="mode != 'jobwork'">
+                            <list create="false">
+                                <field name="packet_id" readonly="1" force_save="1"/>
+                                <field name="barcode" readonly="1"/>
+                                <field name="shape" readonly="1"/>
+                                <field name="color" readonly="1"/>
+                                <field name="clarity" readonly="1"/>
+                                <field name="old_pcs" string="Issued Pcs"/>
+                                <field name="old_cts" string="Issued Cts"/>
+                                <field name="split_receive"/>
+                                <field name="child_count" string="# Kids"/>
+                                <field name="new_cts" string="Recv Cts"/>
+                                <field name="new_pcs" string="Recv Pcs"/>
+                                <field name="loss_cts"
+                                       decoration-danger="loss_cts &gt; 0"
+                                       decoration-success="loss_cts &lt; 0"/>
+                                <field name="loss_pct" optional="show"/>
+                                <field name="labour_amount"/>
+                                <field name="allow_weight_gain" optional="hide"/>
+                                <field name="note" optional="hide"/>
+                            </list>
+                            <form string="Receive / Split Packet">
+                                <group>
+                                    <group>
+                                        <field name="packet_id" readonly="1"/>
+                                        <field name="barcode" readonly="1"/>
+                                        <field name="old_pcs" readonly="1"/>
+                                        <field name="old_cts" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="split_receive"/>
+                                        <field name="labour_amount"/>
+                                        <field name="allow_weight_gain"/>
+                                        <field name="note"/>
+                                    </group>
+                                </group>
+                                <group invisible="split_receive">
+                                    <field name="new_pcs"/>
+                                    <field name="new_cts"/>
+                                    <field name="loss_cts" readonly="1"/>
+                                </group>
+                                <group string="Child Packets" invisible="not split_receive">
+                                    <p class="text-muted" colspan="2">
+                                        Add one line per returned stone. Totals become Received Cts / Pcs.
+                                    </p>
+                                    <field name="child_line_ids" nolabel="1" colspan="2">
+                                        <list editable="bottom">
+                                            <field name="pcs"/>
+                                            <field name="cts"/>
+                                            <field name="note"/>
+                                        </list>
+                                    </field>
+                                    <group>
+                                        <field name="new_pcs" string="Total Recv Pcs" readonly="1"/>
+                                        <field name="new_cts" string="Total Recv Cts" readonly="1"/>
+                                        <field name="loss_cts" readonly="1"/>
+                                    </group>
+                                </group>
+                            </form>
+                        </field>
+
+                        <!-- Other modes: inline editable weights -->
+                        <field name="line_ids" invisible="mode == 'jobwork'">
                             <list editable="bottom" create="false">
                                 <field name="packet_id" readonly="1" force_save="1"/>
                                 <field name="barcode" readonly="1"/>
@@ -56,22 +120,8 @@
                                 <field name="clarity" readonly="1"/>
                                 <field name="old_pcs" string="Issued Pcs"/>
                                 <field name="old_cts" string="Issued Cts"/>
-                                <field name="split_receive"
-                                       column_invisible="not parent.show_split_receive"/>
-                                <button name="action_edit_child_packets"
-                                        type="object"
-                                        string="Add Children"
-                                        class="btn-link"
-                                        column_invisible="not parent.show_split_receive"
-                                        invisible="not split_receive"/>
-                                <field name="child_count" string="# Kids"
-                                       column_invisible="not parent.show_split_receive"/>
-                                <field name="new_cts" string="Recv Cts"
-                                       readonly="split_receive"
-                                       force_save="1"/>
-                                <field name="new_pcs" string="Recv Pcs"
-                                       readonly="split_receive"
-                                       force_save="1"/>
+                                <field name="new_cts" string="Recv Cts"/>
+                                <field name="new_pcs" string="Recv Pcs"/>
                                 <field name="labour_weight_cts" string="Labour Wt"
                                        readonly="1"
                                        column_invisible="parent.mode != 'factory'"/>
@@ -87,8 +137,6 @@
                                        column_invisible="not parent.show_party_labour"/>
                                 <field name="worker_labour_amount" readonly="1"
                                        column_invisible="not parent.show_worker_labour"/>
-                                <field name="labour_amount"
-                                       column_invisible="parent.mode != 'jobwork'"/>
                                 <field name="allow_weight_gain" optional="hide"/>
                                 <field name="note" optional="hide"/>
                             </list>
@@ -117,42 +165,6 @@
                                 class="btn-secondary"
                                 special="cancel"
                                 data-hotkey="x"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
-
-        <!-- Popup to add child packets (nested O2M is not usable inside editable list) -->
-        <record id="view_packet_receive_wizard_line_split_form" model="ir.ui.view">
-            <field name="name">diamond.packet.receive.wizard.line.split.form</field>
-            <field name="model">diamond.packet.receive.wizard.line</field>
-            <field name="arch" type="xml">
-                <form string="Child Packets">
-                    <group>
-                        <group>
-                            <field name="packet_id" readonly="1"/>
-                            <field name="old_cts" string="Issued Cts" readonly="1"/>
-                            <field name="split_receive" invisible="1"/>
-                        </group>
-                        <group>
-                            <field name="new_cts" string="Total Recv Cts" readonly="1"/>
-                            <field name="new_pcs" string="Total Recv Pcs" readonly="1"/>
-                            <field name="loss_cts" readonly="1"/>
-                            <field name="labour_amount"/>
-                            <field name="allow_weight_gain"/>
-                        </group>
-                    </group>
-                    <separator string="Child stones — Add a line for each returned stone"/>
-                    <field name="child_line_ids">
-                        <list editable="bottom">
-                            <field name="pcs"/>
-                            <field name="cts"/>
-                            <field name="note"/>
-                        </list>
-                    </field>
-                    <footer>
-                        <button string="Done" special="save" class="btn-primary"/>
-                        <button string="Cancel" special="cancel" class="btn-secondary"/>
                     </footer>
                 </form>
             </field>
