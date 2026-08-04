@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Company record rules for models added after the original security file.
+        Not under noupdate so upgrades always create / keep them active.
+    -->
+    <data>
+
+        <record id="rule_diamond_improvement_return_company" model="ir.rule">
+            <field name="name">Improvement Return: multi-company</field>
+            <field name="model_id" ref="model_diamond_improvement_return"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="rule_diamond_improvement_return_line_company" model="ir.rule">
+            <field name="name">Improvement Return Line: multi-company</field>
+            <field name="model_id" ref="model_diamond_improvement_return_line"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="rule_diamond_packet_pending_factory_company" model="ir.rule">
+            <field name="name">Packet Pending Factory: multi-company</field>
+            <field name="model_id" ref="model_diamond_packet_pending_factory"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="rule_diamond_jobwork_receive_child_line_company" model="ir.rule">
+            <field name="name">Jobwork Receive Child Line: multi-company</field>
+            <field name="model_id" ref="model_diamond_jobwork_receive_child_line"/>
+            <field name="domain_force">[('company_id','in',company_ids)]</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>
